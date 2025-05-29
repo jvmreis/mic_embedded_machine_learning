@@ -4,6 +4,8 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../source/I2Cdev.c \
+../source/MPU6050.c \
 ../source/peripherals.c \
 ../source/playbackSineWave.c \
 ../source/playbackSong.c \
@@ -14,6 +16,8 @@ C_SRCS += \
 ../source/semihost_hardfault.c 
 
 C_DEPS += \
+./source/I2Cdev.d \
+./source/MPU6050.d \
 ./source/peripherals.d \
 ./source/playbackSineWave.d \
 ./source/playbackSong.d \
@@ -24,6 +28,8 @@ C_DEPS += \
 ./source/semihost_hardfault.d 
 
 OBJS += \
+./source/I2Cdev.o \
+./source/MPU6050.o \
 ./source/peripherals.o \
 ./source/playbackSineWave.o \
 ./source/playbackSong.o \
@@ -46,7 +52,7 @@ source/%.o: ../source/%.c source/subdir.mk
 clean: clean-source
 
 clean-source:
-	-$(RM) ./source/peripherals.d ./source/peripherals.o ./source/playbackSineWave.d ./source/playbackSineWave.o ./source/playbackSong.d ./source/playbackSong.o ./source/recordPlayback.d ./source/recordPlayback.o ./source/recordtoSdcard.d ./source/recordtoSdcard.o ./source/sai_peripheral.d ./source/sai_peripheral.o ./source/sdmmc_config.d ./source/sdmmc_config.o ./source/semihost_hardfault.d ./source/semihost_hardfault.o
+	-$(RM) ./source/I2Cdev.d ./source/I2Cdev.o ./source/MPU6050.d ./source/MPU6050.o ./source/peripherals.d ./source/peripherals.o ./source/playbackSineWave.d ./source/playbackSineWave.o ./source/playbackSong.d ./source/playbackSong.o ./source/recordPlayback.d ./source/recordPlayback.o ./source/recordtoSdcard.d ./source/recordtoSdcard.o ./source/sai_peripheral.d ./source/sai_peripheral.o ./source/sdmmc_config.d ./source/sdmmc_config.o ./source/semihost_hardfault.d ./source/semihost_hardfault.o
 
 .PHONY: clean-source
 

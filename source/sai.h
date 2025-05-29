@@ -18,7 +18,7 @@
 #define BUFFER_SIZE      (512)
 #define BUFFER_NUM       (4)
 #if defined BOARD_HAS_SDCARD && (BOARD_HAS_SDCARD != 0)
-//#define DEMO_SDCARD (1U)
+#define DEMO_SDCARD (1U)
 #endif
 /* demo audio sample rate */
 #define DEMO_AUDIO_SAMPLE_RATE (kSAI_SampleRate16KHz)

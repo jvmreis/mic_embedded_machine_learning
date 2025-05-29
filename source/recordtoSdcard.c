@@ -12,7 +12,11 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-
+#define DEMO_RECORD_CSV_PATH                                                                                         \
+    {                                                                                                                \
+        SDDISK + '0', ':', '/', 'r', 'e', 'c', 'o', 'r', 'd', '/', 'a', 'c', 'c', 'e', 'l', 'e', '.', 'c', 's', 'v', \
+            '\0'                                                                                                     \
+    }
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -231,4 +235,73 @@ void RecordSDCard(I2S_Type *base, uint32_t time_s)
     }
     f_close(&g_fileObject);
     PRINTF("\r\nPlayback is finished!\r\n");
+}
+
+void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
+{
+    uint32_t i            = 0;
+    uint32_t bytesWritten = 0;
+    uint32_t bytesRead    = 0;
+    uint32_t txindex      = 0;
+    uint32_t rxindex      = 0;
+    uint32_t sdReadCount  = 0;
+    uint8_t header[44]    = {0};
+    uint32_t fileSize     = time_s * DEMO_AUDIO_SAMPLE_RATE * 2U * 2U + 44U;
+    FRESULT error;
+    static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
+
+    /* Clear the status */
+    isrxFinished = false;
+    receiveCount = 0;
+    istxFinished = false;
+    sendCount    = 0;
+    sdcard       = true;
+
+    PRINTF("\r\nBegin to record......\r\n");
+    PRINTF("\r\nFile path is record/acc.csv\r\n");
+    error = f_open(&g_fileObject, (char const *)csvpathBuffer, (FA_WRITE | FA_READ | FA_CREATE_ALWAYS));
+    if (error)
+    {
+        if (error == FR_EXIST)
+        {
+            PRINTF("File exists.\r\n");
+        }
+        else
+        {
+            PRINTF("Open file failed.\r\n");
+            return;
+        }
+    }
+
+
+    /* Reset ACCE internal logic */
+//    SAI_TxSoftwareReset(base, kSAI_ResetTypeSoftware);
+//    SAI_RxSoftwareReset(base, kSAI_ResetTypeSoftware);
+
+    /* Start to record */
+    beginCount = time_s * DEMO_AUDIO_SAMPLE_RATE * 2U * 2U / BUFFER_SIZE;
+
+    /* Start record first */
+    memset(audioBuff, 0, BUFFER_SIZE * BUFFER_NUM);
+
+
+    emptyBlock = 0;
+    while ((isrxFinished != true) || (fullBlock != 0))
+    {
+        if (fullBlock > 0)
+        {
+            error = f_write(&g_fileObject, audioBuff + txindex * BUFFER_SIZE, BUFFER_SIZE, (UINT *)&bytesWritten);
+            if ((error) || (bytesWritten != BUFFER_SIZE))
+            {
+                PRINTF("Write file failed. \r\n");
+                return;
+            }
+
+            txindex = (txindex + 1U) % BUFFER_NUM;
+            fullBlock--;
+            emptyBlock++;
+        }
+
+    }
+    f_close(&g_fileObject);
 }
