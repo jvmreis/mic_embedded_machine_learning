@@ -154,6 +154,20 @@ void BOARD_InitBootPins(void);
 #define BOARD_LCDIF_D9_PERIPHERAL                                            ARM   /*!< Peripheral name */
 #define BOARD_LCDIF_D9_SIGNAL                                      arm_trace_swo   /*!< Signal name */
 
+/* GPIO_B1_03 (coord D11), LCDIF_D15 */
+/* Routed pin properties */
+#define BOARD_LCDIF_D15_PERIPHERAL                                         GPIO2   /*!< Peripheral name */
+#define BOARD_LCDIF_D15_SIGNAL                                           gpio_io   /*!< Signal name */
+#define BOARD_LCDIF_D15_CHANNEL                                              19U   /*!< Signal channel */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_LCDIF_D15_GPIO                                               GPIO2   /*!< GPIO peripheral base pointer */
+#define BOARD_LCDIF_D15_GPIO_PIN                                             19U   /*!< GPIO pin number */
+#define BOARD_LCDIF_D15_GPIO_PIN_MASK                                (1U << 19U)   /*!< GPIO pin mask */
+#define BOARD_LCDIF_D15_PORT                                               GPIO2   /*!< PORT peripheral base pointer */
+#define BOARD_LCDIF_D15_PIN                                                  19U   /*!< PORT pin number */
+#define BOARD_LCDIF_D15_PIN_MASK                                     (1U << 19U)   /*!< PORT pin mask */
+
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.

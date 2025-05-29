@@ -7,6 +7,7 @@
 
 #include "sai.h"
 #include "app.h"
+#include "MPU6050.h"
 
 /*******************************************************************************
  * Definitions
@@ -203,6 +204,49 @@ int main(void)
     SAI_RxEnableInterrupts(DEMO_SAI_PERIPHERAL, kSAI_FIFOErrorInterruptEnable);
     EnableIRQ(DEMO_SAI_TX_IRQ);
     EnableIRQ(DEMO_SAI_RX_IRQ);
+
+    // MPU6050
+    MPU6050(MPU6050_ADDRESS_AD0_LOW);
+
+    // Initialize device
+    PRINTF("Initializing I2C devices...\r\n");
+    MPU6050_initialize();
+
+    SDK_DelayAtLeastUs(2000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+
+
+    // Verify connection
+    PRINTF("Testing device connections...\r\n");
+    PRINTF(MPU6050_testConnection() ? "MPU6050 connection successful\r\n" :
+        "MPU6050 connection failed\r\n");
+
+    PRINTF("Reading internal sensor offsets...\r\n");
+    PRINTF("%d\t", MPU6050_getXAccelOffset());
+    PRINTF("%d\t", MPU6050_getYAccelOffset());
+    PRINTF("%d\t", MPU6050_getZAccelOffset());
+    PRINTF("%d\t", MPU6050_getXGyroOffset());
+    PRINTF("%d\t", MPU6050_getYGyroOffset());
+    PRINTF("%d\t\n", MPU6050_getZGyroOffset());
+
+
+    uint8_t result_data[6]={0,0,0,0,0,0};
+    uint8_t val=255;
+
+    MPU6050_Measurement sensor_data = {0};
+
+    // Configure escalas uma única vez
+    MPU6050_configScale(&sensor_data);
+
+    BOARD_LPI2C_Receive(BOARD_ACCEL_I2C_BASEADDR,0x68 , 0x75, 1, result_data, 6);
+
+    if (MPU6050_getMeasurement(&sensor_data)) {
+    	PRINTF("Ax=%.2fg Ay=%.2fg Az=%.2fg | Gx=%.2f Gy=%.2f Gz=%.2f | T=%.2f°C\r\n",
+    	       sensor_data.accel_g[0], sensor_data.accel_g[1], sensor_data.accel_g[2],
+    	       sensor_data.gyro_dps[0], sensor_data.gyro_dps[1], sensor_data.gyro_dps[2],
+    	       sensor_data.temperature);
+    }
+
+
 
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */

@@ -85,7 +85,6 @@ status_t BOARD_LPI2C_Send(LPI2C_Type *base,
 
     return LPI2C_MasterTransferBlocking(base, &xfer);
 }
-
 status_t BOARD_LPI2C_Receive(LPI2C_Type *base,
                              uint8_t deviceAddress,
                              uint32_t subAddress,

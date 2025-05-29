@@ -20,6 +20,7 @@ pin_labels:
 
 #include "fsl_common.h"
 #include "fsl_iomuxc.h"
+#include "fsl_gpio.h"
 #include "pin_mux.h"
 
 /* FUNCTION ************************************************************************************************************
@@ -74,6 +75,7 @@ BOARD_InitPins:
   - {pin_num: D13, peripheral: GPIO2, signal: 'gpio_io, 28', pin_signal: GPIO_B1_12, software_input_on: Disable, hysteresis_enable: Enable, pull_up_down_config: Pull_Up_47K_Ohm,
     pull_keeper_select: Pull, pull_keeper_enable: Enable, open_drain: Disable, speed: MHZ_100, drive_strength: R0, slew_rate: Fast}
   - {pin_num: D10, peripheral: ARM, signal: arm_trace_swo, pin_signal: GPIO_B0_13, slew_rate: Slow}
+  - {pin_num: D11, peripheral: GPIO2, signal: 'gpio_io, 19', pin_signal: GPIO_B1_03, direction: INPUT, gpio_interrupt: kGPIO_IntFallingEdge}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 
@@ -85,6 +87,17 @@ BOARD_InitPins:
  * END ****************************************************************************************************************/
 void BOARD_InitPins(void) {
   CLOCK_EnableClock(kCLOCK_Iomuxc);           
+
+  /* GPIO configuration of LCDIF_D15 on GPIO_B1_03 (pin D11) */
+  gpio_pin_config_t LCDIF_D15_config = {
+      .direction = kGPIO_DigitalInput,
+      .outputLogic = 0U,
+      .interruptMode = kGPIO_IntFallingEdge
+  };
+  /* Initialize GPIO functionality on GPIO_B1_03 (pin D11) */
+  GPIO_PinInit(GPIO2, 19U, &LCDIF_D15_config);
+  /* Enable GPIO pin interrupt on GPIO_B1_03 (pin D11) */
+  GPIO_PortEnableInterrupts(GPIO2, 1U << 19U);
 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_05_GPIO1_IO05, 0U); 
 #if FSL_IOMUXC_DRIVER_VERSION >= MAKE_VERSION(2, 0, 3)
@@ -109,6 +122,7 @@ void BOARD_InitPins(void) {
 #else
   IOMUXC_SetPinMux(IOMUXC_GPIO_B0_13_ARM_CM7_TRACE_SWO, 0U); 
 #endif
+  IOMUXC_SetPinMux(IOMUXC_GPIO_B1_03_GPIO2_IO19, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_B1_12_GPIO2_IO28, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_B1_14_USDHC1_VSELECT, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B0_00_USDHC1_CMD, 0U); 
