@@ -13,8 +13,10 @@ mcu_data: ksdk2_0
 processor_version: 24.12.10
 board: IMXRT1050-EVKB
 pin_labels:
+- {pin_num: F14, pin_signal: GPIO_AD_B0_09, label: LED_1, identifier: USER_led}
 - {pin_num: J11, pin_signal: GPIO_AD_B1_00, label: 'I2C1_SCL/CSI_I2C_SCL/J35[20]/J23[6]/U13[17]/U32[4]', identifier: I2C_SCL_FXOS8700CQ;CSI_I2C_SCL;I2C1_SCL}
 - {pin_num: K11, pin_signal: GPIO_AD_B1_01, label: 'I2C1_SDA/CSI_I2C_SDA/J35[22]/J23[5]/U13[18]/U32[6]', identifier: I2C_SDA_FXOS8700CQ;CSI_I2C_SDA;I2C1_SDA}
+- {pin_num: M12, pin_signal: GPIO_AD_B1_03, label: MPU6050_INT, identifier: SPDIF_IN;MPU6050_int}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 
@@ -75,7 +77,11 @@ BOARD_InitPins:
   - {pin_num: D13, peripheral: GPIO2, signal: 'gpio_io, 28', pin_signal: GPIO_B1_12, software_input_on: Disable, hysteresis_enable: Enable, pull_up_down_config: Pull_Up_47K_Ohm,
     pull_keeper_select: Pull, pull_keeper_enable: Enable, open_drain: Disable, speed: MHZ_100, drive_strength: R0, slew_rate: Fast}
   - {pin_num: D10, peripheral: ARM, signal: arm_trace_swo, pin_signal: GPIO_B0_13, slew_rate: Slow}
-  - {pin_num: D11, peripheral: GPIO2, signal: 'gpio_io, 19', pin_signal: GPIO_B1_03, direction: INPUT, gpio_interrupt: kGPIO_IntFallingEdge}
+  - {pin_num: D11, peripheral: GPIO2, signal: 'gpio_io, 19', pin_signal: GPIO_B1_03, direction: INPUT, gpio_interrupt: kGPIO_IntFallingEdge, slew_rate: Slow}
+  - {pin_num: L6, peripheral: GPIO5, signal: 'gpio_io, 00', pin_signal: WAKEUP, direction: INPUT, gpio_interrupt: kGPIO_IntFallingEdge}
+  - {pin_num: F14, peripheral: GPIO1, signal: 'gpio_io, 09', pin_signal: GPIO_AD_B0_09, direction: OUTPUT}
+  - {pin_num: M12, peripheral: GPIO1, signal: 'gpio_io, 19', pin_signal: GPIO_AD_B1_03, identifier: MPU6050_int, direction: INPUT, gpio_interrupt: kGPIO_IntFallingEdge,
+    slew_rate: Fast}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 
@@ -87,6 +93,27 @@ BOARD_InitPins:
  * END ****************************************************************************************************************/
 void BOARD_InitPins(void) {
   CLOCK_EnableClock(kCLOCK_Iomuxc);           
+  CLOCK_EnableClock(kCLOCK_IomuxcSnvs);       
+
+  /* GPIO configuration of USER_led on GPIO_AD_B0_09 (pin F14) */
+  gpio_pin_config_t USER_led_config = {
+      .direction = kGPIO_DigitalOutput,
+      .outputLogic = 0U,
+      .interruptMode = kGPIO_NoIntmode
+  };
+  /* Initialize GPIO functionality on GPIO_AD_B0_09 (pin F14) */
+  GPIO_PinInit(GPIO1, 9U, &USER_led_config);
+
+  /* GPIO configuration of MPU6050_int on GPIO_AD_B1_03 (pin M12) */
+  gpio_pin_config_t MPU6050_int_config = {
+      .direction = kGPIO_DigitalInput,
+      .outputLogic = 0U,
+      .interruptMode = kGPIO_IntFallingEdge
+  };
+  /* Initialize GPIO functionality on GPIO_AD_B1_03 (pin M12) */
+  GPIO_PinInit(GPIO1, 19U, &MPU6050_int_config);
+  /* Enable GPIO pin interrupt on GPIO_AD_B1_03 (pin M12) */
+  GPIO_PortEnableInterrupts(GPIO1, 1U << 19U);
 
   /* GPIO configuration of LCDIF_D15 on GPIO_B1_03 (pin D11) */
   gpio_pin_config_t LCDIF_D15_config = {
@@ -99,7 +126,19 @@ void BOARD_InitPins(void) {
   /* Enable GPIO pin interrupt on GPIO_B1_03 (pin D11) */
   GPIO_PortEnableInterrupts(GPIO2, 1U << 19U);
 
+  /* GPIO configuration of USER_BUTTON on WAKEUP (pin L6) */
+  gpio_pin_config_t USER_BUTTON_config = {
+      .direction = kGPIO_DigitalInput,
+      .outputLogic = 0U,
+      .interruptMode = kGPIO_IntFallingEdge
+  };
+  /* Initialize GPIO functionality on WAKEUP (pin L6) */
+  GPIO_PinInit(GPIO5, 0U, &USER_BUTTON_config);
+  /* Enable GPIO pin interrupt on WAKEUP (pin L6) */
+  GPIO_PortEnableInterrupts(GPIO5, 1U << 0U);
+
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_05_GPIO1_IO05, 0U); 
+  IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_09_GPIO1_IO09, 0U); 
 #if FSL_IOMUXC_DRIVER_VERSION >= MAKE_VERSION(2, 0, 3)
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_12_LPUART1_TXD, 0U); 
 #else
@@ -112,6 +151,7 @@ void BOARD_InitPins(void) {
 #endif
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL, 1U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA, 1U); 
+  IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_03_GPIO1_IO19, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_09_SAI1_MCLK, 1U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_12_SAI1_RX_DATA00, 1U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B1_13_SAI1_TX_DATA00, 1U); 
@@ -131,6 +171,7 @@ void BOARD_InitPins(void) {
   IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B0_03_USDHC1_DATA1, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B0_04_USDHC1_DATA2, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_SD_B0_05_USDHC1_DATA3, 0U); 
+  IOMUXC_SetPinMux(IOMUXC_SNVS_WAKEUP_GPIO5_IO00, 0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B0_05_GPIO1_IO05, 0x10B0U); 
 #if FSL_IOMUXC_DRIVER_VERSION >= MAKE_VERSION(2, 0, 3)
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B0_12_LPUART1_TXD, 0x10B0U); 
@@ -144,6 +185,7 @@ void BOARD_InitPins(void) {
 #endif
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL, 0xD8B0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA, 0xD8B0U); 
+  IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_03_GPIO1_IO19, 0x10B1U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_09_SAI1_MCLK, 0x10B0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_12_SAI1_RX_DATA00, 0x10B0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_B1_13_SAI1_TX_DATA00, 0x10B0U); 
@@ -154,6 +196,7 @@ void BOARD_InitPins(void) {
 #else
   IOMUXC_SetPinConfig(IOMUXC_GPIO_B0_13_ARM_CM7_TRACE_SWO, 0x10B0U); 
 #endif
+  IOMUXC_SetPinConfig(IOMUXC_GPIO_B1_03_GPIO2_IO19, 0x10B0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_B1_12_GPIO2_IO28, 0x017089U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_B1_14_USDHC1_VSELECT, 0x0170A1U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_00_USDHC1_CMD, 0x017089U); 

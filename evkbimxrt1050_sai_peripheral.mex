@@ -25,8 +25,10 @@
          <pins_profile>
             <processor_version>24.12.10</processor_version>
             <pin_labels>
+               <pin_label pin_num="F14" pin_signal="GPIO_AD_B0_09" label="LED_1" identifier="USER_led"/>
                <pin_label pin_num="J11" pin_signal="GPIO_AD_B1_00" label="I2C1_SCL/CSI_I2C_SCL/J35[20]/J23[6]/U13[17]/U32[4]" identifier="I2C_SCL_FXOS8700CQ;CSI_I2C_SCL;I2C1_SCL"/>
                <pin_label pin_num="K11" pin_signal="GPIO_AD_B1_01" label="I2C1_SDA/CSI_I2C_SDA/J35[22]/J23[5]/U13[18]/U32[6]" identifier="I2C_SDA_FXOS8700CQ;CSI_I2C_SDA;I2C1_SDA"/>
+               <pin_label pin_num="M12" pin_signal="GPIO_AD_B1_03" label="MPU6050_INT" identifier="SPDIF_IN;MPU6050_int"/>
             </pin_labels>
             <power_domains/>
          </pins_profile>
@@ -66,6 +68,16 @@
                      </feature>
                   </dependency>
                   <dependency resourceType="Peripheral" resourceId="GPIO2" description="Peripheral GPIO2 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:BOARD_InitPins">
+                     <feature name="initialized" evaluation="equal">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="Peripheral" resourceId="GPIO5" description="Peripheral GPIO5 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:BOARD_InitPins">
+                     <feature name="initialized" evaluation="equal">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="Peripheral" resourceId="GPIO1" description="Peripheral GPIO1 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:BOARD_InitPins">
                      <feature name="initialized" evaluation="equal">
                         <data>true</data>
                      </feature>
@@ -332,6 +344,26 @@
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
                         <pin_feature name="gpio_interrupt" value="kGPIO_IntFallingEdge"/>
+                        <pin_feature name="slew_rate" value="Slow"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO5" signal="gpio_io, 00" pin_num="L6" pin_signal="WAKEUP">
+                     <pin_features>
+                        <pin_feature name="direction" value="INPUT"/>
+                        <pin_feature name="gpio_interrupt" value="kGPIO_IntFallingEdge"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO1" signal="gpio_io, 09" pin_num="F14" pin_signal="GPIO_AD_B0_09">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO1" signal="gpio_io, 19" pin_num="M12" pin_signal="GPIO_AD_B1_03">
+                     <pin_features>
+                        <pin_feature name="identifier" value="MPU6050_int"/>
+                        <pin_feature name="direction" value="INPUT"/>
+                        <pin_feature name="gpio_interrupt" value="kGPIO_IntFallingEdge"/>
+                        <pin_feature name="slew_rate" value="Fast"/>
                      </pin_features>
                   </pin>
                </pins>
@@ -783,7 +815,17 @@
                   <data type="Version">2.2.1</data>
                </feature>
             </dependency>
-            <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
+            <dependency resourceType="SWComponent" resourceId="component.igpio_adapter" description="Component igpio_adapter is not found in the toolchain/IDE project. The project will not compile!" problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data type="Boolean">true</data>
+               </feature>
+            </dependency>
+            <dependency resourceType="SWComponent" resourceId="component.igpio_adapter" description="An unsupported version of the Component igpio_adapter in the toolchain/IDE project. Required: ${required_value}, actual: ${actual_value}. The project might not compile correctly." problem_level="1" source="Peripherals">
+               <feature name="version" evaluation="equivalent">
+                  <data type="Version">1.0.1</data>
+               </feature>
+            </dependency>
+            <dependency resourceType="Tool" resourceId="Pins" description="The Pins tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
                <feature name="enabled" evaluation="equal">
                   <data>true</data>
                </feature>
@@ -839,6 +881,16 @@
                   <dependency resourceType="SWComponent" resourceId="platform.drivers.sai_edma" description="The compatible version of the fsl_sai_edma driver is not available in the project (required for the eDMA mode)." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
                      <feature name="version" evaluation="compatible">
                         <data type="Version">2.1.5</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="PinSignal" resourceId="GPIO5.gpio_io.00" description="Signal gpio_io, 00 is not routed." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
+                     <feature name="routed" evaluation="">
+                        <data type="Boolean">true</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="PinSignal" resourceId="GPIO1.gpio_io.19" description="Signal gpio_io, 19 is not routed." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
+                     <feature name="routed" evaluation="">
+                        <data type="Boolean">true</data>
                      </feature>
                   </dependency>
                </dependencies>
@@ -1082,6 +1134,84 @@
                         <array name="interrupts"/>
                      </config_set>
                   </instance>
+                  <instance name="GPIO5" uuid="f2dea721-c1f7-4a33-a4f3-a8021b536b47" type="igpio_adapter" type_id="igpio_adapter_1.0.1" mode="GPIO" peripheral="GPIO5" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_adapter_gpio">
+                        <set name="signalsFilter">
+                           <selected>
+                              <id>default</id>
+                              <id>boot</id>
+                           </selected>
+                        </set>
+                        <array name="gpioSignalsParameters">
+                           <struct name="0"/>
+                        </array>
+                        <array name="gpioPinsOverView">
+                           <struct name="0"/>
+                        </array>
+                        <array name="gpioPinsConfig">
+                           <struct name="0">
+                              <setting name="pin_selection" value="gpio_io.00"/>
+                              <setting name="userPinId" value=""/>
+                              <setting name="funtionalGroupEnum" value="BOARD_InitPins"/>
+                              <setting name="setCallbackFnc" value="true"/>
+                              <struct name="callbackFncCfg">
+                                 <setting name="functionName" value="defaultFunctionName"/>
+                                 <setting name="userData" value=""/>
+                              </struct>
+                           </struct>
+                        </array>
+                        <struct name="globalCfg"/>
+                        <array name="differentPeripheralsAdd"/>
+                     </config_set>
+                  </instance>
+                  <instance name="GPIO1" uuid="c1f88f0f-b6b5-4333-acf0-31ad4818a2aa" type="igpio_adapter" type_id="igpio_adapter_1.0.1" mode="GPIO" peripheral="GPIO1" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_adapter_gpio">
+                        <set name="signalsFilter">
+                           <selected>
+                              <id>default</id>
+                              <id>boot</id>
+                           </selected>
+                        </set>
+                        <array name="gpioSignalsParameters">
+                           <struct name="0"/>
+                           <struct name="1"/>
+                           <struct name="2"/>
+                           <struct name="3"/>
+                           <struct name="4"/>
+                           <struct name="5"/>
+                           <struct name="6"/>
+                           <struct name="7"/>
+                           <struct name="8"/>
+                           <struct name="9"/>
+                           <struct name="10"/>
+                           <struct name="11"/>
+                           <struct name="12"/>
+                           <struct name="13"/>
+                           <struct name="14"/>
+                           <struct name="15"/>
+                           <struct name="16"/>
+                        </array>
+                        <array name="gpioPinsOverView">
+                           <struct name="0"/>
+                           <struct name="1"/>
+                           <struct name="2"/>
+                        </array>
+                        <array name="gpioPinsConfig">
+                           <struct name="0">
+                              <setting name="pin_selection" value="gpio_io.19"/>
+                              <setting name="userPinId" value=""/>
+                              <setting name="funtionalGroupEnum" value="BOARD_InitPins"/>
+                              <setting name="setCallbackFnc" value="true"/>
+                              <struct name="callbackFncCfg">
+                                 <setting name="functionName" value="defaultFunctionName"/>
+                                 <setting name="userData" value=""/>
+                              </struct>
+                           </struct>
+                        </array>
+                        <struct name="globalCfg"/>
+                        <array name="differentPeripheralsAdd"/>
+                     </config_set>
+                  </instance>
                </instances>
             </functional_group>
          </functional_groups>
@@ -1100,7 +1230,12 @@
                <config_set_global name="global_USART_CMSIS_common" quick_selection="default"/>
             </component>
             <component name="gpio_adapter_common" uuid="f58bf22c-64d6-4171-abab-94f0c7cf7b28" type_id="gpio_adapter_common">
-               <config_set_global name="global_gpio_adapter_common" quick_selection="default"/>
+               <config_set_global name="global_gpio_adapter_common" quick_selection="default">
+                  <struct name="commonSetting">
+                     <setting name="HAL_GPIO_ISR_PRIORITY" value="3"/>
+                     <setting name="HAL_GpioPreInit" value="true"/>
+                  </struct>
+               </config_set_global>
             </component>
             <component name="generic_uart" uuid="c4b49e8c-2c4a-48d0-92bf-7a5237d40c82" type_id="generic_uart">
                <config_set_global name="global_uart"/>

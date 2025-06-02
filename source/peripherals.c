@@ -42,6 +42,9 @@ component:
 - type: 'gpio_adapter_common'
 - type_id: 'gpio_adapter_common'
 - global_gpio_adapter_common:
+  - commonSetting:
+    - HAL_GPIO_ISR_PRIORITY: '3'
+    - HAL_GpioPreInit: 'true'
   - quick_selection: 'default'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -414,6 +417,157 @@ static void NVIC_init(void) {
 } */
 
 /***********************************************************************************************************************
+ * GPIO5 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO5'
+- type: 'igpio_adapter'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'igpio_adapter_1.0.1'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'GPIO5'
+- config_sets:
+  - fsl_adapter_gpio:
+    - signalsFilter: 'default boot'
+    - gpioSignalsParameters:
+      - 0: []
+    - gpioPinsOverView:
+      - 0: []
+    - gpioPinsConfig:
+      - 0:
+        - pin_selection: 'gpio_io.00'
+        - userPinId: ''
+        - funtionalGroupEnum: 'BOARD_InitPins'
+        - setCallbackFnc: 'true'
+        - callbackFncCfg:
+          - functionName: 'defaultFunctionName'
+          - userData: ''
+    - globalCfg: []
+    - differentPeripheralsAdd: []
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+/* Get GPIO pin configuration */
+hal_gpio_pin_config_t createAdapterGpioPinConfig(GPIO_Type *port, uint8_t pin, hal_gpio_direction_t direction, uint8_t level){
+  hal_gpio_pin_config_t temp;
+  /* Array of GPIO peripheral base address. */
+  static GPIO_Type *const s_gpioBases[] = GPIO_BASE_PTRS;
+  uint8_t portInd;
+  /* Find the port index from base address mappings. */
+  for (portInd = 0U; portInd < ARRAY_SIZE(s_gpioBases); portInd++)
+  {    if (s_gpioBases[portInd] == port)
+    {
+      break;
+    }
+  }
+  
+  assert(portInd < ARRAY_SIZE(s_gpioBases));
+  
+  temp.direction = direction;
+  temp.level = level;
+  temp.port = portInd;
+  temp.pin = pin;
+  
+  return temp;
+};
+GPIO_HANDLE_DEFINE(BOARD_USER_BUTTON_handle);
+
+static void GPIO5_init(void) {
+  /* GPIO adapter initialization */
+  static hal_gpio_pin_config_t gpioPinConfig;
+  hal_gpio_status_t status;
+  (void)status; // suppress warning in the run configuration
+  /* gpio_io, 00 signal initialization */
+  gpioPinConfig = createAdapterGpioPinConfig(BOARD_USER_BUTTON_PORT, BOARD_USER_BUTTON_PIN, BOARD_USER_BUTTON_PIN_DIRECTION, BOARD_USER_BUTTON_PIN_LEVEL);
+  status = HAL_GpioInit(BOARD_USER_BUTTON_handle, &gpioPinConfig);
+  assert(status == kStatus_HAL_GpioSuccess);
+  status = HAL_GpioInstallCallback(BOARD_USER_BUTTON_handle, BOARD_USER_BUTTON_callback, NULL);
+  assert(status == kStatus_HAL_GpioSuccess);
+  status = HAL_GpioSetTriggerMode(BOARD_USER_BUTTON_handle, BOARD_USER_BUTTON_TRIGGER_MODE);
+  assert(status == kStatus_HAL_GpioSuccess);
+}
+
+/***********************************************************************************************************************
+ * GPIO1 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO1'
+- type: 'igpio_adapter'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'igpio_adapter_1.0.1'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'GPIO1'
+- config_sets:
+  - fsl_adapter_gpio:
+    - signalsFilter: 'default boot'
+    - gpioSignalsParameters:
+      - 0: []
+      - 1: []
+      - 2: []
+      - 3: []
+      - 4: []
+      - 5: []
+      - 6: []
+      - 7: []
+      - 8: []
+      - 9: []
+      - 10: []
+      - 11: []
+      - 12: []
+      - 13: []
+      - 14: []
+      - 15: []
+      - 16: []
+    - gpioPinsOverView:
+      - 0: []
+      - 1: []
+      - 2: []
+    - gpioPinsConfig:
+      - 0:
+        - pin_selection: 'gpio_io.19'
+        - userPinId: ''
+        - funtionalGroupEnum: 'BOARD_InitPins'
+        - setCallbackFnc: 'true'
+        - callbackFncCfg:
+          - functionName: 'defaultFunctionName'
+          - userData: ''
+    - globalCfg: []
+    - differentPeripheralsAdd: []
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+GPIO_HANDLE_DEFINE(BOARD_CAN_STBY_handle);
+GPIO_HANDLE_DEFINE(BOARD_USER_led_handle);
+GPIO_HANDLE_DEFINE(BOARD_MPU6050_int_handle);
+
+static void GPIO1_init(void) {
+  /* GPIO adapter initialization */
+  static hal_gpio_pin_config_t gpioPinConfig;
+  hal_gpio_status_t status;
+  (void)status; // suppress warning in the run configuration
+  /* gpio_io, 05 signal initialization */
+  gpioPinConfig = createAdapterGpioPinConfig(BOARD_CAN_STBY_PORT, BOARD_CAN_STBY_PIN, BOARD_CAN_STBY_PIN_DIRECTION, BOARD_CAN_STBY_PIN_LEVEL);
+  status = HAL_GpioInit(BOARD_CAN_STBY_handle, &gpioPinConfig);
+  assert(status == kStatus_HAL_GpioSuccess);
+  /* gpio_io, 09 signal initialization */
+  gpioPinConfig = createAdapterGpioPinConfig(BOARD_USER_led_PORT, BOARD_USER_led_PIN, BOARD_USER_led_PIN_DIRECTION, BOARD_USER_led_PIN_LEVEL);
+  status = HAL_GpioInit(BOARD_USER_led_handle, &gpioPinConfig);
+  assert(status == kStatus_HAL_GpioSuccess);
+  /* gpio_io, 19 signal initialization */
+  gpioPinConfig = createAdapterGpioPinConfig(BOARD_MPU6050_int_PORT, BOARD_MPU6050_int_PIN, BOARD_MPU6050_int_PIN_DIRECTION, BOARD_MPU6050_int_PIN_LEVEL);
+  status = HAL_GpioInit(BOARD_MPU6050_int_handle, &gpioPinConfig);
+  assert(status == kStatus_HAL_GpioSuccess);
+  status = HAL_GpioInstallCallback(BOARD_MPU6050_int_handle, BOARD_MPU6050_int_callback, NULL);
+  assert(status == kStatus_HAL_GpioSuccess);
+  status = HAL_GpioSetTriggerMode(BOARD_MPU6050_int_handle, BOARD_MPU6050_int_TRIGGER_MODE);
+  assert(status == kStatus_HAL_GpioSuccess);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
@@ -421,9 +575,13 @@ void BOARD_InitPeripherals(void)
   /* Global initialization */
   DMAMUX_Init(DEMO_EDMA_DMAMUX_BASEADDR);
   EDMA_Init(DEMO_EDMA_DMA_BASEADDR, &DEMO_eDMA_config);
+  /* GPIO adapter pre-initialization */
+  HAL_GpioPreInit();
 
   /* Initialize components */
   DEMO_SAI_init();
+  GPIO5_init();
+  GPIO1_init();
 }
 
 /***********************************************************************************************************************

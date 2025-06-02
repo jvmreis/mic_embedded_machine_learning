@@ -52,6 +52,11 @@ extern sd_card_t g_sd; /* sd card descriptor */
 #endif
 codec_handle_t codecHandle;
 
+#define BOARD_USER_LED_GPIO_PIN_MASK (1u << BOARD_USER_LED_GPIO_PIN)
+#define BOARD_USER_MPU6050_INT_PIN_MASK (1u << BOARD_LCDIF_D15_PIN)
+
+
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -177,6 +182,20 @@ int SD_FatFsInit()
 }
 #endif /* DEMO_SDCARD */
 
+void BOARD_USER_BUTTON_callback(void *param)
+{
+    GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
+    GPIO_PortClearInterruptFlags(BOARD_USER_LED_GPIO, BOARD_USER_BUTTON_GPIO_PIN_MASK);
+
+}
+
+void BOARD_MPU6050_int_callback(void *param)
+{
+    GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
+    GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
+
+}
+
 /*!
  * @brief Main function
  */
@@ -240,13 +259,31 @@ int main(void)
     BOARD_LPI2C_Receive(BOARD_ACCEL_I2C_BASEADDR,0x68 , 0x75, 1, result_data, 6);
 
     if (MPU6050_getMeasurement(&sensor_data)) {
-    	PRINTF("Ax=%.2fg Ay=%.2fg Az=%.2fg | Gx=%.2f Gy=%.2f Gz=%.2f | T=%.2f°C\r\n",
+    	PRINTF("Ax=%.2fg Ay=%.2fg Az=%.2fg | Gx=%.2f Gy=%.2f Gz=%.2f | T=%.2f C\r\n",
     	       sensor_data.accel_g[0], sensor_data.accel_g[1], sensor_data.accel_g[2],
     	       sensor_data.gyro_dps[0], sensor_data.gyro_dps[1], sensor_data.gyro_dps[2],
     	       sensor_data.temperature);
     }
 
 
+    MPU6050_enableFIFOandInterrupts();
+
+//    uint8_t fifo_count_high, fifo_count_low;
+//    int32_t fifo_count;
+//    uint8_t fifo_buffer[6]; // 6 bytes = 3 eixos de aceleração
+//
+//    MPU6050_getFIFOCount(&fifo_count);
+//    fifo_count = fifo_count & 0xFFF;  // FIFO buffer has 1024 bytes max
+//
+//    while (fifo_count >= 6) {
+//        MPU6050_getFIFOBytes(fifo_buffer, 6);
+//        int16_t ax = ((int16_t)fifo_buffer[0] << 8) | fifo_buffer[1];
+//        int16_t ay = ((int16_t)fifo_buffer[2] << 8) | fifo_buffer[3];
+//        int16_t az = ((int16_t)fifo_buffer[4] << 8) | fifo_buffer[5];
+//
+//        // Converter para g, etc...
+//        fifo_count -= 6;
+//    }
 
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */

@@ -3182,6 +3182,13 @@ void MPU6050_configScale(MPU6050_Measurement *m) {
 }
 
 
+void MPU6050_enableFIFOandInterrupts() {
+    MPU6050_resetFIFO();                              // Optional: clear FIFO before use
+    MPU6050_setFIFOEnabled(true);                     // Enable FIFO globally
+    MPU6050_setAccelFIFOEnabled(true);                // Enable accelerometer in FIFO
+    MPU6050_setIntDataReadyEnabled(true);             // Enable Data Ready interrupt
+}
+
 bool MPU6050_getMeasurement(MPU6050_Measurement *m) {
     if (!m) return false;
 

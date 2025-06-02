@@ -15,6 +15,8 @@
 #include "fsl_sai.h"
 #include "fsl_sai_edma.h"
 #include "fsl_clock.h"
+#include "fsl_adapter_gpio.h"
+#include "pin_mux.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -62,6 +64,30 @@ extern "C" {
 #define DEMO_SAI_RX_DMAMUX_BASEADDR DMAMUX
 /* Used DMA device. */
 #define DEMO_SAI_RX_DMA_BASEADDR DMA0
+/* gpio_io, 00 signal defines */
+/* Definition of the pin direction */
+#define BOARD_USER_BUTTON_PIN_DIRECTION kHAL_GpioDirectionIn
+/* Definition of the pin level after initialization */
+#define BOARD_USER_BUTTON_PIN_LEVEL 0U
+/* Definition of the pin trigger mode */
+#define BOARD_USER_BUTTON_TRIGGER_MODE kHAL_GpioInterruptFallingEdge
+/* gpio_io, 05 signal defines */
+/* Definition of the pin direction */
+#define BOARD_CAN_STBY_PIN_DIRECTION kHAL_GpioDirectionIn
+/* Definition of the pin level after initialization */
+#define BOARD_CAN_STBY_PIN_LEVEL 0U
+/* gpio_io, 09 signal defines */
+/* Definition of the pin direction */
+#define BOARD_USER_led_PIN_DIRECTION kHAL_GpioDirectionOut
+/* Definition of the pin level after initialization */
+#define BOARD_USER_led_PIN_LEVEL 0U
+/* gpio_io, 19 signal defines */
+/* Definition of the pin direction */
+#define BOARD_MPU6050_int_PIN_DIRECTION kHAL_GpioDirectionIn
+/* Definition of the pin level after initialization */
+#define BOARD_MPU6050_int_PIN_LEVEL 0U
+/* Definition of the pin trigger mode */
+#define BOARD_MPU6050_int_TRIGGER_MODE kHAL_GpioInterruptFallingEdge
 
 /***********************************************************************************************************************
  * Global variables
@@ -73,6 +99,16 @@ extern edma_handle_t dmaTxHandle;
 extern edma_handle_t dmaRxHandle;
 extern sai_edma_handle_t txHandle;
 extern sai_edma_handle_t rxHandle;
+extern GPIO_HANDLE_DEFINE(BOARD_USER_BUTTON_handle);
+extern GPIO_HANDLE_DEFINE(BOARD_CAN_STBY_handle);
+extern GPIO_HANDLE_DEFINE(BOARD_USER_led_handle);
+extern GPIO_HANDLE_DEFINE(BOARD_MPU6050_int_handle);
+
+/***********************************************************************************************************************
+ * Global functions
+ **********************************************************************************************************************/
+/* Get GPIO pin configuration */
+hal_gpio_pin_config_t createAdapterGpioPinConfig(GPIO_Type *port, uint8_t pin, hal_gpio_direction_t direction, uint8_t level);
 
 /***********************************************************************************************************************
  * Callback functions
@@ -81,6 +117,10 @@ extern sai_edma_handle_t rxHandle;
 extern void txCallback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
 /* SAI transfer Rx callback function for the DEMO_SAI component (init. function BOARD_InitPeripherals)*/
 extern void rxCallback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
+/* Callback function for the BOARD_USER_BUTTON_handle*/
+extern void BOARD_USER_BUTTON_callback(void *param);
+/* Callback function for the BOARD_MPU6050_int_handle*/
+extern void BOARD_MPU6050_int_callback(void *param);
 
 /***********************************************************************************************************************
  * Initialization functions

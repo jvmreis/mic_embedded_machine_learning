@@ -168,6 +168,49 @@ void BOARD_InitBootPins(void);
 #define BOARD_LCDIF_D15_PIN                                                  19U   /*!< PORT pin number */
 #define BOARD_LCDIF_D15_PIN_MASK                                     (1U << 19U)   /*!< PORT pin mask */
 
+/* WAKEUP (coord L6), USER_BUTTON/SW8 */
+/* Routed pin properties */
+#define BOARD_USER_BUTTON_PERIPHERAL                                       GPIO5   /*!< Peripheral name */
+#define BOARD_USER_BUTTON_SIGNAL                                         gpio_io   /*!< Signal name */
+#define BOARD_USER_BUTTON_CHANNEL                                             0U   /*!< Signal channel */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_USER_BUTTON_GPIO                                             GPIO5   /*!< GPIO peripheral base pointer */
+#define BOARD_USER_BUTTON_GPIO_PIN                                            0U   /*!< GPIO pin number */
+#define BOARD_USER_BUTTON_GPIO_PIN_MASK                               (1U << 0U)   /*!< GPIO pin mask */
+#define BOARD_USER_BUTTON_PORT                                             GPIO5   /*!< PORT peripheral base pointer */
+#define BOARD_USER_BUTTON_PIN                                                 0U   /*!< PORT pin number */
+#define BOARD_USER_BUTTON_PIN_MASK                                    (1U << 0U)   /*!< PORT pin mask */
+
+/* GPIO_AD_B0_09 (coord F14), LED_1 */
+/* Routed pin properties */
+#define BOARD_USER_led_PERIPHERAL                                          GPIO1   /*!< Peripheral name */
+#define BOARD_USER_led_SIGNAL                                            gpio_io   /*!< Signal name */
+#define BOARD_USER_led_CHANNEL                                                9U   /*!< Signal channel */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_USER_led_GPIO                                                GPIO1   /*!< GPIO peripheral base pointer */
+#define BOARD_USER_led_INIT_GPIO_VALUE                                        0U   /*!< GPIO output initial state */
+#define BOARD_USER_led_GPIO_PIN                                               9U   /*!< GPIO pin number */
+#define BOARD_USER_led_GPIO_PIN_MASK                                  (1U << 9U)   /*!< GPIO pin mask */
+#define BOARD_USER_led_PORT                                                GPIO1   /*!< PORT peripheral base pointer */
+#define BOARD_USER_led_PIN                                                    9U   /*!< PORT pin number */
+#define BOARD_USER_led_PIN_MASK                                       (1U << 9U)   /*!< PORT pin mask */
+
+/* GPIO_AD_B1_03 (coord M12), MPU6050_INT */
+/* Routed pin properties */
+#define BOARD_MPU6050_int_PERIPHERAL                                       GPIO1   /*!< Peripheral name */
+#define BOARD_MPU6050_int_SIGNAL                                         gpio_io   /*!< Signal name */
+#define BOARD_MPU6050_int_CHANNEL                                            19U   /*!< Signal channel */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_MPU6050_int_GPIO                                             GPIO1   /*!< GPIO peripheral base pointer */
+#define BOARD_MPU6050_int_GPIO_PIN                                           19U   /*!< GPIO pin number */
+#define BOARD_MPU6050_int_GPIO_PIN_MASK                              (1U << 19U)   /*!< GPIO pin mask */
+#define BOARD_MPU6050_int_PORT                                             GPIO1   /*!< PORT peripheral base pointer */
+#define BOARD_MPU6050_int_PIN                                                19U   /*!< PORT pin number */
+#define BOARD_MPU6050_int_PIN_MASK                                   (1U << 19U)   /*!< PORT pin mask */
+
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.

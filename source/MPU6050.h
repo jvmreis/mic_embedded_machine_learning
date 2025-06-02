@@ -89,6 +89,7 @@ typedef struct {
     float temp_sensitivity;   // Temperature sensitivity (LSB/°C)
 } MPU6050_Measurement;
 
+void MPU6050_enableFIFOandInterrupts();
 /**
  * @brief Reads and converts sensor data into physical units (g, °/s, °C)
  * @param m Pointer to MPU6050_Measurement struct to store the results
