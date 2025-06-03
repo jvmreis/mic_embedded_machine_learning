@@ -45,6 +45,9 @@ volatile uint32_t fullBlock    = 0;
 volatile uint32_t emptyBlock   = BUFFER_NUM;
 #if defined DEMO_SDCARD
 /* static values for fatfs */
+
+volatile uint8_t fifo_buffer[6]; // 6 bytes = 3 eixos de aceleração
+
 AT_NONCACHEABLE_SECTION(FATFS g_fileSystem); /* File system object */
 AT_NONCACHEABLE_SECTION(FIL g_fileObject);   /* File object */
 AT_NONCACHEABLE_SECTION(BYTE work[FF_MAX_SS]);
@@ -186,12 +189,17 @@ void BOARD_USER_BUTTON_callback(void *param)
 {
     GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
     GPIO_PortClearInterruptFlags(BOARD_USER_LED_GPIO, BOARD_USER_BUTTON_GPIO_PIN_MASK);
-
 }
 
 void BOARD_MPU6050_int_callback(void *param)
 {
+
     GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
+
+//    MPU6050_getFIFOBytes(fifo_buffer, 6);
+//    MPU6050_setInterruptLatch(true);
+//    MPU6050_setInterruptLatchClear(true); // Para limpar lendo o status
+    MPU6050_resetFIFO();
     GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
 
 }
@@ -233,7 +241,6 @@ int main(void)
 
     SDK_DelayAtLeastUs(2000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
-
     // Verify connection
     PRINTF("Testing device connections...\r\n");
     PRINTF(MPU6050_testConnection() ? "MPU6050 connection successful\r\n" :
@@ -268,22 +275,7 @@ int main(void)
 
     MPU6050_enableFIFOandInterrupts();
 
-//    uint8_t fifo_count_high, fifo_count_low;
-//    int32_t fifo_count;
-//    uint8_t fifo_buffer[6]; // 6 bytes = 3 eixos de aceleração
-//
-//    MPU6050_getFIFOCount(&fifo_count);
-//    fifo_count = fifo_count & 0xFFF;  // FIFO buffer has 1024 bytes max
-//
-//    while (fifo_count >= 6) {
-//        MPU6050_getFIFOBytes(fifo_buffer, 6);
-//        int16_t ax = ((int16_t)fifo_buffer[0] << 8) | fifo_buffer[1];
-//        int16_t ay = ((int16_t)fifo_buffer[2] << 8) | fifo_buffer[3];
-//        int16_t az = ((int16_t)fifo_buffer[4] << 8) | fifo_buffer[5];
-//
-//        // Converter para g, etc...
-//        fifo_count -= 6;
-//    }
+
 
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */
@@ -332,6 +324,7 @@ int main(void)
 #if defined DEMO_SDCARD
             case '3':
                 RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
+                RecordAcceSDCard(BOARD_ACCEL_I2C_BASEADDR, 5);
                 break;
 #endif
 #if defined DIG_MIC

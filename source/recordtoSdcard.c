@@ -9,6 +9,10 @@
 #include "diskio.h"
 #include "fsl_sd.h"
 #include "sai.h"
+#include "MPU6050.h"
+#include <stdio.h>
+
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -17,6 +21,15 @@
         SDDISK + '0', ':', '/', 'r', 'e', 'c', 'o', 'r', 'd', '/', 'a', 'c', 'c', 'e', 'l', 'e', '.', 'c', 's', 'v', \
             '\0'                                                                                                     \
     }
+
+#define ACC_BUFFER_SIZE 512
+#define AXIS_NUM 3
+#define SAMPLES_PER_LINE 128  // Number of samples per line before inserting a newline
+
+//AT_NONCACHEABLE_SECTION_ALIGN(uint8_t acccBuff[ACC_BUFFER_SIZE * AXIS_NUM], 4);
+
+void RecordAcceSDCard(I2S_Type *base, uint32_t time_s);
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -237,71 +250,144 @@ void RecordSDCard(I2S_Type *base, uint32_t time_s)
     PRINTF("\r\nPlayback is finished!\r\n");
 }
 
+//void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
+//{
+//    uint32_t bytesWritten = 0;
+//    FRESULT error;
+//    static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
+//
+//    // Inicializa sensor e escalas
+//    MPU6050_configScale(NULL); // Escala padrão
+//    MPU6050_reset();
+//    MPU6050_setSleepEnabled(false);
+//    MPU6050_setDLPFMode(0);       // Disable DLPF → base 8kHz
+//    MPU6050_setRate(3);           // 8kHz / (1+3) = 2kHz
+//    MPU6050_resetFIFO();
+//    MPU6050_setFIFOEnabled(true);
+//    MPU6050_setAccelFIFOEnabled(true);
+//    MPU6050_setIntDataReadyEnabled(true);
+//    MPU6050_setInterruptLatchClear(true);
+//
+//    PRINTF("\r\nBegin to record accelerometer data...\r\n");
+//    error = f_open(&g_fileObject, (char const *)csvpathBuffer, (FA_WRITE | FA_READ | FA_CREATE_ALWAYS));
+//    if (error)
+//    {
+//        PRINTF("Failed to open CSV file.\r\n");
+//        return;
+//    }
+//
+//    // Inicializa buffers
+//    char line_buffer[SAMPLES_PER_LINE * 12 + 4] = {0};
+//    uint32_t collected = 0, line_pos = 0;
+//    const uint32_t target_samples = time_s * 2000; // 2 kHz
+//    UINT written;
+//
+//    while (collected < target_samples)
+//    {
+//        uint16_t count = MPU6050_getFIFOCount();
+//        while (count >= 6 && collected < target_samples)
+//        {
+//            uint8_t fifo_buffer[6];
+//            MPU6050_getFIFOBytes(fifo_buffer, 6);
+//
+//            int16_t ax = (fifo_buffer[0] << 8) | fifo_buffer[1];
+//            int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
+//            int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
+//
+//            char sample[32];
+//            snprintf(sample, sizeof(sample), "%d %d %d ", ax, ay, az);
+//            strcat(line_buffer, sample);
+//
+//            collected++;
+//            count -= 6;
+//            line_pos++;
+//
+//            if (line_pos >= SAMPLES_PER_LINE)
+//            {
+//                strcat(line_buffer, "\n");
+//                error = f_write(&g_fileObject, line_buffer, strlen(line_buffer), &written);
+//                if (error || written != strlen(line_buffer))
+//                {
+//                    PRINTF("Write to CSV failed.\r\n");
+//                    f_close(&g_fileObject);
+//                    return;
+//                }
+//                line_buffer[0] = '\0';
+//                line_pos = 0;
+//            }
+//        }
+//    }
+//
+//    // Última linha parcial
+//    if (line_pos > 0)
+//    {
+//        strcat(line_buffer, "\n");
+//        f_write(&g_fileObject, line_buffer, strlen(line_buffer), &written);
+//    }
+//
+//    f_close(&g_fileObject);
+//    PRINTF("Accelerometer recording complete. Total samples: %lu\r\n", collected);
+//}
 void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
 {
-    uint32_t i            = 0;
-    uint32_t bytesWritten = 0;
-    uint32_t bytesRead    = 0;
-    uint32_t txindex      = 0;
-    uint32_t rxindex      = 0;
-    uint32_t sdReadCount  = 0;
-    uint8_t header[44]    = {0};
-    uint32_t fileSize     = time_s * DEMO_AUDIO_SAMPLE_RATE * 2U * 2U + 44U;
     FRESULT error;
     static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
 
-    /* Clear the status */
-    isrxFinished = false;
-    receiveCount = 0;
-    istxFinished = false;
-    sendCount    = 0;
-    sdcard       = true;
+    // Inicializa sensor e escalas
+    MPU6050_configScale(NULL);
+    MPU6050_reset();
+    MPU6050_setSleepEnabled(false);
+    MPU6050_setDLPFMode(0);       // Disable DLPF → base 8kHz
+    MPU6050_setRate(3);           // 8kHz / (1+3) = 2kHz
+    MPU6050_resetFIFO();
+    MPU6050_setFIFOEnabled(true);
+    MPU6050_setAccelFIFOEnabled(true);
+    MPU6050_setIntDataReadyEnabled(true);
+    MPU6050_setInterruptLatchClear(true);
 
-    PRINTF("\r\nBegin to record......\r\n");
-    PRINTF("\r\nFile path is record/acc.csv\r\n");
+    PRINTF("\r\nBegin to record accelerometer data...\r\n");
     error = f_open(&g_fileObject, (char const *)csvpathBuffer, (FA_WRITE | FA_READ | FA_CREATE_ALWAYS));
     if (error)
     {
-        if (error == FR_EXIST)
-        {
-            PRINTF("File exists.\r\n");
-        }
-        else
-        {
-            PRINTF("Open file failed.\r\n");
-            return;
-        }
+        PRINTF("Failed to open CSV file.\r\n");
+        return;
     }
 
+    uint32_t collected = 0, line_pos = 0;
+    const uint32_t target_samples = time_s * 2000; // 2 kHz
 
-    /* Reset ACCE internal logic */
-//    SAI_TxSoftwareReset(base, kSAI_ResetTypeSoftware);
-//    SAI_RxSoftwareReset(base, kSAI_ResetTypeSoftware);
-
-    /* Start to record */
-    beginCount = time_s * DEMO_AUDIO_SAMPLE_RATE * 2U * 2U / BUFFER_SIZE;
-
-    /* Start record first */
-    memset(audioBuff, 0, BUFFER_SIZE * BUFFER_NUM);
-
-
-    emptyBlock = 0;
-    while ((isrxFinished != true) || (fullBlock != 0))
+    while (collected < target_samples)
     {
-        if (fullBlock > 0)
+        uint16_t count = MPU6050_getFIFOCount();
+        while (count >= 6 && collected < target_samples)
         {
-            error = f_write(&g_fileObject, audioBuff + txindex * BUFFER_SIZE, BUFFER_SIZE, (UINT *)&bytesWritten);
-            if ((error) || (bytesWritten != BUFFER_SIZE))
+            uint8_t fifo_buffer[6];
+            MPU6050_getFIFOBytes(fifo_buffer, 6);
+
+            int16_t ax = (fifo_buffer[0] << 8) | fifo_buffer[1];
+            int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
+            int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
+
+            f_printf(&g_fileObject, "%d %d %d ", ax, ay, az);
+
+            collected++;
+            count -= 6;
+            line_pos++;
+
+            if (line_pos >= SAMPLES_PER_LINE)
             {
-                PRINTF("Write file failed. \r\n");
-                return;
+                f_printf(&g_fileObject, "\n");
+                line_pos = 0;
             }
-
-            txindex = (txindex + 1U) % BUFFER_NUM;
-            fullBlock--;
-            emptyBlock++;
         }
-
     }
+
+    if (line_pos > 0)
+    {
+        f_printf(&g_fileObject, "\n");
+    }
+
     f_close(&g_fileObject);
+    PRINTF("Accelerometer recording complete. Total samples: %lu\r\n", collected);
 }
+
