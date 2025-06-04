@@ -67,21 +67,29 @@ instance:
 - type: 'edma'
 - mode: 'basic'
 - custom_name_enabled: 'true'
-- type_id: 'edma_2.1.1'
+- type_id: 'edma_2.4.0'
 - functional_group: 'BOARD_InitPeripherals'
 - peripheral: 'DMA0'
 - config_sets:
   - fsl_edma:
     - common_settings:
+      - enableMinorLoopMapping: 'true'
       - enableContinuousLinkMode: 'false'
       - enableHaltOnError: 'true'
-      - enableRoundRobinArbitration: 'false'
+      - ERCA: 'fixedPriority'
       - enableDebugMode: 'false'
     - dma_table:
       - 0: []
       - 1: []
     - edma_channels: []
-    - quick_selection: 'default'
+    - errInterruptConfig:
+      - enableErrInterrupt: 'false'
+      - errorInterrupt:
+        - IRQn: 'DMA_ERROR_IRQn'
+        - enable_interrrupt: 'enabled'
+        - enable_priority: 'false'
+        - priority: '0'
+        - enable_custom_name: 'false'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 const edma_config_t DEMO_eDMA_config = {
@@ -91,9 +99,10 @@ const edma_config_t DEMO_eDMA_config = {
   .enableDebugMode = false
 };
 
-/* Empty initialization function (commented out)
 static void DEMO_eDMA_init(void) {
-} */
+  /* DMA0 minor loop mapping */
+  EDMA_EnableMinorLoopMapping(DEMO_EDMA_DMA_BASEADDR, true);
+}
 
 /***********************************************************************************************************************
  * DEMO_SAI initialization code
@@ -105,7 +114,7 @@ instance:
 - type: 'sai'
 - mode: 'edma'
 - custom_name_enabled: 'true'
-- type_id: 'sai_2.2.1'
+- type_id: 'sai_2.3.6'
 - functional_group: 'BOARD_InitPeripherals'
 - peripheral: 'SAI1'
 - config_sets:
@@ -137,6 +146,7 @@ instance:
             - frameSyncWidthM: '16'
             - frameSyncPolarityM: 'kSAI_PolarityActiveLow'
             - frameSyncEarlyM: 'true'
+            - frameSyncGenerateOnDemandM: 'false'
           - sampleRate_Hz: 'kSAI_SampleRate16KHz'
           - channelMask: 'kSAI_Channel0Mask'
           - serialData:
@@ -183,12 +193,13 @@ instance:
                 - 15: 'false'
           - fifo:
             - fifoWatermarkM: '16'
+            - fifoCombine: 'kSAI_FifoCombineDisabled'
             - fifoPacking: 'kSAI_FifoPackingDisabled'
             - fifoContinueOneError: 'true'
         - edma_group:
           - enable_edma_channel: 'true'
           - edma_channel:
-            - uid: '1748267014227'
+            - uid: '1749036244978'
             - eDMAn: '0'
             - eDMA_source: 'kDmaRequestMuxSai1Tx'
             - enableTriggerPIT: 'false'
@@ -202,6 +213,10 @@ instance:
           - sai_edma_handle:
             - enable_custom_name: 'true'
             - handle_custom_name: 'txHandle'
+            - placement:
+              - section: 'cacheable'
+              - zeroInitialize: 'false'
+              - align: '32'
             - init_callback: 'true'
             - callback_fcn: 'txCallback'
             - user_data: ''
@@ -218,6 +233,7 @@ instance:
             - frameSyncWidthM: '16'
             - frameSyncPolarityM: 'kSAI_PolarityActiveLow'
             - frameSyncEarlyM: 'true'
+            - frameSyncGenerateOnDemandM: 'false'
           - sampleRate_Hz: 'kSAI_SampleRate16KHz'
           - channelMask: 'kSAI_Channel0Mask'
           - serialData:
@@ -264,12 +280,13 @@ instance:
                 - 15: 'false'
           - fifo:
             - fifoWatermarkM: '16'
+            - fifoCombine: 'kSAI_FifoCombineDisabled'
             - fifoPacking: 'kSAI_FifoPackingDisabled'
             - fifoContinueOneError: 'true'
         - edma_group:
           - enable_edma_channel: 'true'
           - edma_channel:
-            - uid: '1748267014252'
+            - uid: '1749036244979'
             - eDMAn: '1'
             - eDMA_source: 'kDmaRequestMuxSai1Rx'
             - enableTriggerPIT: 'false'
@@ -283,6 +300,10 @@ instance:
           - sai_edma_handle:
             - enable_custom_name: 'true'
             - handle_custom_name: 'rxHandle'
+            - placement:
+              - section: 'cacheable'
+              - zeroInitialize: 'false'
+              - align: '32'
             - init_callback: 'true'
             - callback_fcn: 'rxCallback'
             - user_data: ''
@@ -301,6 +322,7 @@ sai_transceiver_t DEMO_SAI_Tx_config = {
     .frameSyncWidth = 16U,
     .frameSyncPolarity = kSAI_PolarityActiveLow,
     .frameSyncEarly = true,
+    .frameSyncGenerateOnDemand = false
   },
   .syncMode = kSAI_ModeAsync,
   .channelMask = kSAI_Channel0Mask,
@@ -319,6 +341,7 @@ sai_transceiver_t DEMO_SAI_Tx_config = {
   },
   .fifo = {
     .fifoWatermark = 16U,
+    .fifoCombine = kSAI_FifoCombineDisabled,
     .fifoPacking = kSAI_FifoPackingDisabled,
     .fifoContinueOneError = true
   }
@@ -336,6 +359,7 @@ sai_transceiver_t DEMO_SAI_Rx_config = {
     .frameSyncWidth = 16U,
     .frameSyncPolarity = kSAI_PolarityActiveLow,
     .frameSyncEarly = true,
+    .frameSyncGenerateOnDemand = false
   },
   .syncMode = kSAI_ModeSync,
   .channelMask = kSAI_Channel0Mask,
@@ -354,6 +378,7 @@ sai_transceiver_t DEMO_SAI_Rx_config = {
   },
   .fifo = {
     .fifoWatermark = 16U,
+    .fifoCombine = kSAI_FifoCombineDisabled,
     .fifoPacking = kSAI_FifoPackingDisabled,
     .fifoContinueOneError = true
   }
@@ -579,6 +604,7 @@ void BOARD_InitPeripherals(void)
   HAL_GpioPreInit();
 
   /* Initialize components */
+  DEMO_eDMA_init();
   DEMO_SAI_init();
   GPIO5_init();
   GPIO1_init();
