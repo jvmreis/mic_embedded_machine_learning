@@ -28,7 +28,6 @@
 
 //AT_NONCACHEABLE_SECTION_ALIGN(uint8_t acccBuff[ACC_BUFFER_SIZE * AXIS_NUM], 4);
 
-void RecordAcceSDCard(I2S_Type *base, uint32_t time_s);
 
 /*******************************************************************************
  * Prototypes
@@ -333,6 +332,8 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     FRESULT error;
     static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
 
+    PRINTF("[DEBUG] Iniciando configuração do sensor...\r\n");
+
     // Inicializa sensor e escalas
     MPU6050_configScale(NULL);
     MPU6050_reset();
@@ -343,22 +344,41 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     MPU6050_setFIFOEnabled(true);
     MPU6050_setAccelFIFOEnabled(true);
     MPU6050_setIntDataReadyEnabled(true);
-    MPU6050_setInterruptLatchClear(true);
+    //MPU6050_setInterruptLatchClear(true);
 
-    PRINTF("\r\nBegin to record accelerometer data...\r\n");
+    PRINTF("[DEBUG] Configuração do sensor concluída.\r\n");
+
+    PRINTF("\r\n[INFO] Begin to record accelerometer data...\r\n");
+
     error = f_open(&g_fileObject, (char const *)csvpathBuffer, (FA_WRITE | FA_READ | FA_CREATE_ALWAYS));
     if (error)
     {
-        PRINTF("Failed to open CSV file.\r\n");
+        PRINTF("[ERROR] Failed to open CSV file. Error code: %d\r\n", error);
         return;
     }
 
     uint32_t collected = 0, line_pos = 0;
     const uint32_t target_samples = time_s * 2000; // 2 kHz
+    uint32_t iteration_count = 0;
 
     while (collected < target_samples)
     {
+        if (++iteration_count > 1000000)
+        {
+            PRINTF("[ERROR] Loop travado - abortando coleta.\r\n");
+            break;
+        }
+
         uint16_t count = MPU6050_getFIFOCount();
+
+        // Verificação adicional
+        if (count > 1024)
+        {
+            PRINTF("[WARNING] FIFO muito cheia (%d), pode haver overflow.\r\n", count);
+            MPU6050_resetFIFO();
+            continue;
+        }
+
         while (count >= 6 && collected < target_samples)
         {
             uint8_t fifo_buffer[6];
@@ -368,7 +388,12 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
             int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
             int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
 
-            f_printf(&g_fileObject, "%d %d %d ", ax, ay, az);
+            if (f_printf(&g_fileObject, "%d %d %d ", ax, ay, az) < 0)
+            {
+                PRINTF("[ERROR] Falha ao escrever no arquivo.\r\n");
+                f_close(&g_fileObject);
+                return;
+            }
 
             collected++;
             count -= 6;
@@ -388,6 +413,7 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     }
 
     f_close(&g_fileObject);
-    PRINTF("Accelerometer recording complete. Total samples: %lu\r\n", collected);
+    PRINTF("[INFO] Recording complete. Total samples: %lu\r\n", collected);
 }
+
 

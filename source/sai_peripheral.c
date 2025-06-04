@@ -199,7 +199,7 @@ void BOARD_MPU6050_int_callback(void *param)
 //    MPU6050_getFIFOBytes(fifo_buffer, 6);
 //    MPU6050_setInterruptLatch(true);
 //    MPU6050_setInterruptLatchClear(true); // Para limpar lendo o status
-    MPU6050_resetFIFO();
+//    MPU6050_resetFIFO();
     GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
 
 }
@@ -275,7 +275,53 @@ int main(void)
 
     MPU6050_enableFIFOandInterrupts();
 
-
+//    // Inicializa sensor e escalas
+//    MPU6050_configScale(NULL);
+//    MPU6050_reset();
+//    MPU6050_setSleepEnabled(false);
+//    MPU6050_setDLPFMode(0);       // Disable DLPF → base 8kHz
+//    MPU6050_setRate(3);           // 8kHz / (1+3) = 2kHz
+//    MPU6050_resetFIFO();
+//    MPU6050_setFIFOEnabled(true);
+//    MPU6050_setAccelFIFOEnabled(true);
+//    MPU6050_setIntDataReadyEnabled(true);
+//    MPU6050_setInterruptLatchClear(true);
+//
+//    PRINTF("\r\nBegin to record accelerometer data...\r\n");
+//
+//    uint32_t collected = 0, line_pos = 0;
+//    uint32_t target_samples = 5 * 2000; // 2 kHz
+//
+//    while (collected < target_samples)
+//    {
+//        uint16_t count = MPU6050_getFIFOCount();
+//        while (count >= 6 && collected < target_samples)
+//        {
+//            uint8_t fifo_buffer[6];
+//            MPU6050_getFIFOBytes(fifo_buffer, 6);
+//
+//            int16_t ax = (fifo_buffer[0] << 8) | fifo_buffer[1];
+//            int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
+//            int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
+//
+//            PRINTF( "%d %d %d ", ax, ay, az);
+//
+//            collected++;
+//            count -= 6;
+//            line_pos++;
+//
+//            if (line_pos >= 128)
+//            {
+//            	PRINTF("\n");
+//                line_pos = 0;
+//            }
+//        }
+//    }
+//
+//    if (line_pos > 0)
+//    {
+//    	PRINTF("\n");
+//    }
 
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */
@@ -323,7 +369,7 @@ int main(void)
                 break;
 #if defined DEMO_SDCARD
             case '3':
-                RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
+                //RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
                 RecordAcceSDCard(BOARD_ACCEL_I2C_BASEADDR, 5);
                 break;
 #endif
