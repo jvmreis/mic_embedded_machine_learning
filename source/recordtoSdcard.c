@@ -48,6 +48,9 @@ extern bool sdcard;
 extern volatile uint32_t fullBlock;
 extern volatile uint32_t emptyBlock;
 extern FIL g_fileObject;
+
+extern volatile bool i2c_new_data;
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -327,6 +330,96 @@ void RecordSDCard(I2S_Type *base, uint32_t time_s)
 //    f_close(&g_fileObject);
 //    PRINTF("Accelerometer recording complete. Total samples: %lu\r\n", collected);
 //}
+//void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
+//{
+//    FRESULT error;
+//    static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
+//
+//    PRINTF("[DEBUG] Iniciando configuração do sensor...\r\n");
+//
+//    // Inicializa sensor e escalas
+//    MPU6050_configScale(NULL);
+//    MPU6050_reset();
+//    MPU6050_setSleepEnabled(false);
+//    MPU6050_setDLPFMode(0);       // Disable DLPF → base 8kHz
+//    MPU6050_setRate(3);           // 8kHz / (1+3) = 2kHz
+//    MPU6050_resetFIFO();
+//    MPU6050_setFIFOEnabled(true);
+//    MPU6050_setAccelFIFOEnabled(true);
+//    MPU6050_setIntDataReadyEnabled(true);
+//    MPU6050_setInterruptLatchClear(true);
+//
+//    PRINTF("[DEBUG] Configuração do sensor concluída.\r\n");
+//
+//    PRINTF("\r\n[INFO] Begin to record accelerometer data...\r\n");
+//
+//    error = f_open(&g_fileObject, (char const *)csvpathBuffer, (FA_WRITE | FA_READ | FA_CREATE_ALWAYS));
+//    if (error)
+//    {
+//        PRINTF("[ERROR] Failed to open CSV file. Error code: %d\r\n", error);
+//        return;
+//    }
+//
+//    uint32_t collected = 0, line_pos = 0;
+//    const uint32_t target_samples = time_s * 2000; // 2 kHz
+//    uint32_t iteration_count = 0;
+//
+//
+//    //while (collected < target_samples)
+//    //{
+//        if (++iteration_count > 1000000)
+//        {
+//            PRINTF("[ERROR] Loop travado - abortando coleta.\r\n");
+//           // break;
+//        }
+//
+////        uint16_t count = MPU6050_getFIFOCount();
+////
+////        // Verificação adicional
+////        if (count > 1024)
+////        {
+////            PRINTF("[WARNING] FIFO muito cheia (%d), pode haver overflow.\r\n", count);
+////            MPU6050_resetFIFO();
+////           // continue;
+////        }
+//
+//        while (i2c_new_data && collected < target_samples)
+//        {
+//            uint8_t fifo_buffer[6];
+//            MPU6050_getFIFOBytes(fifo_buffer, 6);
+//
+//            int16_t ax = (fifo_buffer[0] << 8) | fifo_buffer[1];
+//            int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
+//            int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
+//
+//            if (f_printf(&g_fileObject, "%d %d %d ", ax, ay, az) < 0)
+//            {
+//                PRINTF("[ERROR] Falha ao escrever no arquivo.\r\n");
+//                f_close(&g_fileObject);
+//                return;
+//            }
+//
+//            collected++;
+//            //count -= 6;
+//            line_pos++;
+//
+//            if (line_pos >= SAMPLES_PER_LINE)
+//            {
+//                f_printf(&g_fileObject, "\n");
+//                line_pos = 0;
+//            }
+//        }
+//    //}
+//
+//    if (line_pos > 0)
+//    {
+//        f_printf(&g_fileObject, "\n");
+//    }
+//
+//    f_close(&g_fileObject);
+//    PRINTF("[INFO] Recording complete. Total samples: %d\r\n", collected);
+//}
+
 void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
 {
     FRESULT error;
@@ -343,8 +436,8 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     MPU6050_resetFIFO();
     MPU6050_setFIFOEnabled(true);
     MPU6050_setAccelFIFOEnabled(true);
-    MPU6050_setIntDataReadyEnabled(true);
-    //MPU6050_setInterruptLatchClear(true);
+    MPU6050_setIntDataReadyEnabled(false);
+    MPU6050_setInterruptLatchClear(true);
 
     PRINTF("[DEBUG] Configuração do sensor concluída.\r\n");
 
@@ -361,6 +454,8 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     const uint32_t target_samples = time_s * 2000; // 2 kHz
     uint32_t iteration_count = 0;
 
+    uint16_t count=0;
+
     while (collected < target_samples)
     {
         if (++iteration_count > 1000000)
@@ -369,7 +464,8 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
             break;
         }
 
-        uint16_t count = MPU6050_getFIFOCount();
+         count = MPU6050_getFIFOCount();
+         PRINTF("count :%d/n", count);
 
         // Verificação adicional
         if (count > 1024)
@@ -379,7 +475,7 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
             continue;
         }
 
-        while (count >= 6 && collected < target_samples)
+        while (count >= 6  && collected < target_samples)
         {
             uint8_t fifo_buffer[6];
             MPU6050_getFIFOBytes(fifo_buffer, 6);
@@ -388,12 +484,8 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
             int16_t ay = (fifo_buffer[2] << 8) | fifo_buffer[3];
             int16_t az = (fifo_buffer[4] << 8) | fifo_buffer[5];
 
-            if (f_printf(&g_fileObject, "%d %d %d ", ax, ay, az) < 0)
-            {
-                PRINTF("[ERROR] Falha ao escrever no arquivo.\r\n");
-                f_close(&g_fileObject);
-                return;
-            }
+            //PRINTF("%d %d %d ", ax, ay, az);
+            // f_printf(&g_fileObject, "%d %d %d ", ax, ay, az);
 
             collected++;
             count -= 6;
@@ -401,7 +493,7 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
 
             if (line_pos >= SAMPLES_PER_LINE)
             {
-                f_printf(&g_fileObject, "\n");
+                //PRINTF("\n");
                 line_pos = 0;
             }
         }
@@ -409,11 +501,11 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
 
     if (line_pos > 0)
     {
-        f_printf(&g_fileObject, "\n");
+       // f_printf(&g_fileObject, "\n");
+        PRINTF("\n");
     }
 
-    f_close(&g_fileObject);
-    PRINTF("[INFO] Recording complete. Total samples: %lu\r\n", collected);
+    //f_close(&g_fileObject);
+    PRINTF("[INFO] Recording complete. Total samples: %d\r\n", collected);
 }
-
 

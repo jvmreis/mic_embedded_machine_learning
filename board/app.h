@@ -43,7 +43,7 @@
 /* Select USB1 PLL (480 MHz) as master lpi2c clock source */
 #define DEMO_LPI2C_CLOCK_SOURCE_SELECT (0U)
 /* Clock divider for master lpi2c clock source */
-#define DEMO_LPI2C_CLOCK_SOURCE_DIVIDER (5U)
+#define DEMO_LPI2C_CLOCK_SOURCE_DIVIDER (1U)
 /* Get frequency of lpi2c clock */
 #define DEMO_I2C_CLK_FREQ ((CLOCK_GetFreq(kCLOCK_Usb1PllClk) / 8) / (DEMO_LPI2C_CLOCK_SOURCE_DIVIDER + 1U))
 /* SD power control function */
