@@ -81,7 +81,39 @@ instance:
     - dma_table:
       - 0: []
       - 1: []
-    - edma_channels: []
+      - 2: []
+    - edma_channels:
+      - 0:
+        - apiMode: 'trans'
+        - edma_channel:
+          - channel_prefix_id: 'CH0'
+          - uid: '1749039469165'
+          - eDMAn: '3'
+          - eDMA_source: 'kDmaRequestMuxLPI2C1'
+          - enableTriggerPIT: 'false'
+          - init_channel_priority: 'false'
+          - edma_channel_Preemption:
+            - enableChannelPreemption: 'false'
+            - enablePreemptAbility: 'false'
+            - channelPriority: '0'
+          - enable_custom_name: 'true'
+          - handle_custom_name: 'I2C_DMA_Callback_tx'
+        - enableChannelRequest: 'false'
+        - enableAsyncRequest: 'false'
+        - tcd_pool_enable: 'false'
+        - tcd_settings:
+          - tcd_size: '1'
+          - tcd_memory_custom_id: 'false'
+        - transfer_config: []
+        - no_init_uid: '1749039469181'
+        - init_callback: 'true'
+        - callback_function: 'I2C_DMA_Callback_rx'
+        - callback_user_data: ''
+        - channel_enabled_interrupts: ''
+        - interrupt_channel:
+          - IRQn: 'DMA3_DMA19_IRQn'
+          - enable_priority: 'false'
+          - priority: '0'
     - errInterruptConfig:
       - enableErrInterrupt: 'false'
       - errorInterrupt:
@@ -98,10 +130,21 @@ const edma_config_t DEMO_eDMA_config = {
   .enableRoundRobinArbitration = false,
   .enableDebugMode = false
 };
+edma_handle_t I2C_DMA_Callback_tx;
 
 static void DEMO_eDMA_init(void) {
   /* DMA0 minor loop mapping */
   EDMA_EnableMinorLoopMapping(DEMO_EDMA_DMA_BASEADDR, true);
+
+  /* Channel CH0 initialization */
+  /* Set the source kDmaRequestMuxLPI2C1 request in the DMAMUX */
+  DMAMUX_SetSource(DEMO_EDMA_DMAMUX_BASEADDR, DEMO_EDMA_CH0_DMA_CHANNEL, DEMO_EDMA_CH0_DMA_REQUEST);
+  /* Enable the channel 3 in the DMAMUX */
+  DMAMUX_EnableChannel(DEMO_EDMA_DMAMUX_BASEADDR, DEMO_EDMA_CH0_DMA_CHANNEL);
+  /* Create the eDMA I2C_DMA_Callback_tx handle */
+  EDMA_CreateHandle(&I2C_DMA_Callback_tx, DEMO_EDMA_DMA_BASEADDR, DEMO_EDMA_CH0_DMA_CHANNEL);
+  /* DMA callback initialization */
+  EDMA_SetCallback(&I2C_DMA_Callback_tx, I2C_DMA_Callback_rx, NULL);
 }
 
 /***********************************************************************************************************************
@@ -432,7 +475,8 @@ instance:
 - peripheral: 'NVIC'
 - config_sets:
   - nvic:
-    - interrupt_table: []
+    - interrupt_table:
+      - 0: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */

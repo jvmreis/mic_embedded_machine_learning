@@ -14,6 +14,7 @@ C_SRCS += \
 ../drivers/fsl_gpc.c \
 ../drivers/fsl_gpio.c \
 ../drivers/fsl_lpi2c.c \
+../drivers/fsl_lpi2c_edma.c \
 ../drivers/fsl_lpuart.c \
 ../drivers/fsl_pmu.c \
 ../drivers/fsl_sai.c \
@@ -32,6 +33,7 @@ C_DEPS += \
 ./drivers/fsl_gpc.d \
 ./drivers/fsl_gpio.d \
 ./drivers/fsl_lpi2c.d \
+./drivers/fsl_lpi2c_edma.d \
 ./drivers/fsl_lpuart.d \
 ./drivers/fsl_pmu.d \
 ./drivers/fsl_sai.d \
@@ -50,6 +52,7 @@ OBJS += \
 ./drivers/fsl_gpc.o \
 ./drivers/fsl_gpio.o \
 ./drivers/fsl_lpi2c.o \
+./drivers/fsl_lpi2c_edma.o \
 ./drivers/fsl_lpuart.o \
 ./drivers/fsl_pmu.o \
 ./drivers/fsl_sai.o \
@@ -70,7 +73,7 @@ drivers/%.o: ../drivers/%.c drivers/subdir.mk
 clean: clean-drivers
 
 clean-drivers:
-	-$(RM) ./drivers/fsl_cache.d ./drivers/fsl_cache.o ./drivers/fsl_clock.d ./drivers/fsl_clock.o ./drivers/fsl_common.d ./drivers/fsl_common.o ./drivers/fsl_common_arm.d ./drivers/fsl_common_arm.o ./drivers/fsl_dcdc.d ./drivers/fsl_dcdc.o ./drivers/fsl_dmamux.d ./drivers/fsl_dmamux.o ./drivers/fsl_edma.d ./drivers/fsl_edma.o ./drivers/fsl_gpc.d ./drivers/fsl_gpc.o ./drivers/fsl_gpio.d ./drivers/fsl_gpio.o ./drivers/fsl_lpi2c.d ./drivers/fsl_lpi2c.o ./drivers/fsl_lpuart.d ./drivers/fsl_lpuart.o ./drivers/fsl_pmu.d ./drivers/fsl_pmu.o ./drivers/fsl_sai.d ./drivers/fsl_sai.o ./drivers/fsl_sai_edma.d ./drivers/fsl_sai_edma.o ./drivers/fsl_src.d ./drivers/fsl_src.o ./drivers/fsl_usdhc.d ./drivers/fsl_usdhc.o
+	-$(RM) ./drivers/fsl_cache.d ./drivers/fsl_cache.o ./drivers/fsl_clock.d ./drivers/fsl_clock.o ./drivers/fsl_common.d ./drivers/fsl_common.o ./drivers/fsl_common_arm.d ./drivers/fsl_common_arm.o ./drivers/fsl_dcdc.d ./drivers/fsl_dcdc.o ./drivers/fsl_dmamux.d ./drivers/fsl_dmamux.o ./drivers/fsl_edma.d ./drivers/fsl_edma.o ./drivers/fsl_gpc.d ./drivers/fsl_gpc.o ./drivers/fsl_gpio.d ./drivers/fsl_gpio.o ./drivers/fsl_lpi2c.d ./drivers/fsl_lpi2c.o ./drivers/fsl_lpi2c_edma.d ./drivers/fsl_lpi2c_edma.o ./drivers/fsl_lpuart.d ./drivers/fsl_lpuart.o ./drivers/fsl_pmu.d ./drivers/fsl_pmu.o ./drivers/fsl_sai.d ./drivers/fsl_sai.o ./drivers/fsl_sai_edma.d ./drivers/fsl_sai_edma.o ./drivers/fsl_src.d ./drivers/fsl_src.o ./drivers/fsl_usdhc.d ./drivers/fsl_usdhc.o
 
 .PHONY: clean-drivers
 

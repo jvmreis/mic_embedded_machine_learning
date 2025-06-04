@@ -28,6 +28,10 @@
 
 //AT_NONCACHEABLE_SECTION_ALIGN(uint8_t acccBuff[ACC_BUFFER_SIZE * AXIS_NUM], 4);
 
+extern volatile bool mpu_data_ready ;
+extern volatile bool dma_done;
+
+extern uint8_t fifo_block[BLOCK_SIZE];
 
 /*******************************************************************************
  * Prototypes
@@ -415,5 +419,66 @@ void RecordAcceSDCard(I2S_Type *base, uint32_t time_s)
     f_close(&g_fileObject);
     PRINTF("[INFO] Recording complete. Total samples: %lu\r\n", collected);
 }
+void RecordMPUData(void)
+{
+    FRESULT res = FR_OK;//f_open(&g_fileObject, "accel.csv", FA_CREATE_ALWAYS | FA_WRITE);
+    if (res != FR_OK) return;
 
+    uint32_t total_samples = 0;
+    uint32_t total_lines = 0;
+
+    PRINTF("[DEBUG] Iniciando configuração do sensor...\r\n");
+
+    // Inicializa sensor e escalas
+    MPU6050_configScale(NULL);
+    MPU6050_reset();
+    MPU6050_setSleepEnabled(false);
+    MPU6050_setDLPFMode(0);       // Disable DLPF → base 8kHz
+    MPU6050_setRate(3);           // 8kHz / (1+3) = 2kHz
+    MPU6050_resetFIFO();
+    MPU6050_setFIFOEnabled(true);
+    MPU6050_setAccelFIFOEnabled(true);
+    MPU6050_setIntDataReadyEnabled(true);
+    MPU6050_setInterruptLatchClear(true);
+
+
+    while (1)
+    {
+        if (!mpu_data_ready)
+            continue;
+
+        mpu_data_ready = false;
+
+        uint16_t fifo_count = MPU6050_getFIFOCount();
+        if (fifo_count >= BLOCK_SIZE)
+        {
+            if (ReadFIFO_DMA(fifo_block, BLOCK_SIZE))
+            {
+                for (int i = 0; i < BLOCK_SIZE; i += 6)
+                {
+                    int16_t ax = (fifo_block[i] << 8) | fifo_block[i + 1];
+                    int16_t ay = (fifo_block[i + 2] << 8) | fifo_block[i + 3];
+                    int16_t az = (fifo_block[i + 4] << 8) | fifo_block[i + 5];
+
+                    //f_printf(&g_fileObject, "%d %d %d ", ax, ay, az);
+                    PRINTF("%d %d %d ", ax, ay, az);
+
+                    total_samples++;
+                }
+
+                //f_printf(&g_fileObject, "\n");
+                PRINTF("\n");
+
+                total_lines++;
+                PRINTF("[DEBUG] Linha %lu gravada (%lu amostras)\r\n", total_lines, total_samples);
+            }
+            else
+            {
+                PRINTF("[ERROR] Leitura DMA falhou\r\n");
+            }
+        }
+    }
+
+    //f_close(&g_fileObject);
+}
 

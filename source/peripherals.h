@@ -30,6 +30,14 @@ extern "C" {
 #define DEMO_EDMA_DMA_BASEADDR DMA0
 /* Associated DMAMUX device that is used for muxing of requests. */
 #define DEMO_EDMA_DMAMUX_BASEADDR DMAMUX
+
+  /* Channel CH0 definitions */
+/* DEMO_eDMA eDMA source request. */
+#define DEMO_EDMA_CH0_DMA_REQUEST kDmaRequestMuxLPI2C1
+/* Selected eDMA channel number. */
+#define DEMO_EDMA_CH0_DMA_CHANNEL 3
+/* DEMO_eDMA interrupt vector ID (number). */
+#define DEMO_EDMA_DMA_CH_INT_DONE_3_IRQN DMA3_DMA19_IRQn
 /* Definition of peripheral ID */
 #define DEMO_SAI_PERIPHERAL SAI1
 /* Bit clock source frequency used for calculating the bit clock divider in the TxSetBitClockRate function. */
@@ -93,6 +101,7 @@ extern "C" {
  * Global variables
  **********************************************************************************************************************/
 extern const edma_config_t DEMO_eDMA_config;
+extern edma_handle_t I2C_DMA_Callback_tx;
 extern sai_transceiver_t DEMO_SAI_Tx_config;
 extern sai_transceiver_t DEMO_SAI_Rx_config;
 extern edma_handle_t dmaTxHandle;
@@ -113,6 +122,8 @@ hal_gpio_pin_config_t createAdapterGpioPinConfig(GPIO_Type *port, uint8_t pin, h
 /***********************************************************************************************************************
  * Callback functions
  **********************************************************************************************************************/
+/* eDMA callback function for the 3 channel.*/
+extern void I2C_DMA_Callback_rx(edma_handle_t*, void*, bool, uint32_t);
 /* SAI transfer Tx callback function for the DEMO_SAI component (init. function BOARD_InitPeripherals)*/
 extern void txCallback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
 /* SAI transfer Rx callback function for the DEMO_SAI component (init. function BOARD_InitPeripherals)*/

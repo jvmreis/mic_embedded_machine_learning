@@ -42,7 +42,18 @@ THE SOFTWARE.
 #define _MPU6050_H_
 
 #include "I2Cdev.h"
+#include "pin_mux.h"
 
+
+#define BOARD_USER_LED_GPIO_PIN_MASK (1u << BOARD_USER_LED_GPIO_PIN)
+#define BOARD_USER_MPU6050_INT_PIN_MASK (1u << BOARD_LCDIF_D15_PIN)
+
+#define BLOCK_SAMPLES 60
+#define BLOCK_SIZE (BLOCK_SAMPLES * 6)
+bool ReadFIFO_DMA(uint8_t *buffer, size_t size);
+
+void Init_I2C_DMA(void);
+void RecordMPUData(void);
 
 #if ((defined MPU6050_INCLUDE_DMP_MOTIONAPPS20) || (defined MPU6050_INCLUDE_DMP_MOTIONAPPS41))
     #error DMP is not supported yet

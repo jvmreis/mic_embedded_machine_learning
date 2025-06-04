@@ -15,6 +15,7 @@
 #ifndef DEMO_CODEC_VOLUME
 #define DEMO_CODEC_VOLUME 100
 #endif
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -54,10 +55,6 @@ AT_NONCACHEABLE_SECTION(BYTE work[FF_MAX_SS]);
 extern sd_card_t g_sd; /* sd card descriptor */
 #endif
 codec_handle_t codecHandle;
-
-#define BOARD_USER_LED_GPIO_PIN_MASK (1u << BOARD_USER_LED_GPIO_PIN)
-#define BOARD_USER_MPU6050_INT_PIN_MASK (1u << BOARD_LCDIF_D15_PIN)
-
 
 
 /*******************************************************************************
@@ -191,18 +188,7 @@ void BOARD_USER_BUTTON_callback(void *param)
     GPIO_PortClearInterruptFlags(BOARD_USER_LED_GPIO, BOARD_USER_BUTTON_GPIO_PIN_MASK);
 }
 
-void BOARD_MPU6050_int_callback(void *param)
-{
 
-    GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
-
-//    MPU6050_getFIFOBytes(fifo_buffer, 6);
-//    MPU6050_setInterruptLatch(true);
-//    MPU6050_setInterruptLatchClear(true); // Para limpar lendo o status
-//    MPU6050_resetFIFO();
-    GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
-
-}
 
 /*!
  * @brief Main function
@@ -275,6 +261,7 @@ int main(void)
 
     MPU6050_enableFIFOandInterrupts();
 
+    Init_I2C_DMA();
 //    // Inicializa sensor e escalas
 //    MPU6050_configScale(NULL);
 //    MPU6050_reset();
@@ -323,6 +310,7 @@ int main(void)
 //    	PRINTF("\n");
 //    }
 
+
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */
     if (SD_FatFsInit() != 0)
@@ -370,7 +358,8 @@ int main(void)
 #if defined DEMO_SDCARD
             case '3':
                 //RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
-                RecordAcceSDCard(BOARD_ACCEL_I2C_BASEADDR, 5);
+                //RecordAcceSDCard(BOARD_ACCEL_I2C_BASEADDR, 5);
+                RecordMPUData();
                 break;
 #endif
 #if defined DIG_MIC

@@ -39,6 +39,18 @@ THE SOFTWARE.
 */
 
 #include "MPU6050.h"
+#include "fsl_lpi2c_edma.h"
+
+
+volatile bool mpu_data_ready = false;
+volatile bool dma_done = false;
+
+uint8_t fifo_block[BLOCK_SIZE];
+
+lpi2c_master_edma_handle_t i2c_edma_handle;
+edma_handle_t edma_rx_handle;
+edma_handle_t edma_tx_handle;
+
 
 MPU6050_t mpu6050;
 
@@ -3210,3 +3222,66 @@ bool MPU6050_getMeasurement(MPU6050_Measurement *m) {
 
     return true;
 }
+
+void BOARD_MPU6050_int_callback(void *param)
+{
+
+    GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
+
+//    MPU6050_getFIFOBytes(fifo_buffer, 6);
+//    MPU6050_setInterruptLatch(true);
+//    MPU6050_setInterruptLatchClear(true); // Para limpar lendo o status
+//    MPU6050_resetFIFO();
+    mpu_data_ready = true;
+
+    GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
+
+}
+
+void I2C_DMA_Callback_rx(LPI2C_Type *base,
+                      lpi2c_master_edma_handle_t *handle,
+                      status_t status,
+                      void *userData)
+{
+    dma_done = true;
+    //PRINTF("DMA I2C transfer completed.\r\n");
+
+}
+lpi2c_master_edma_handle_t i2c_edma_handle;
+
+void Init_I2C_DMA(void)
+{
+
+//    EDMA_CreateHandle(&edma_rx_handle, LPI2C_DMA_BASE, LPI2C_DMA_CHANNEL);
+//    EDMA_EnableChannelInterrupts(LPI2C_DMA_BASE, LPI2C_DMA_CHANNEL, kEDMA_MajorInterruptEnable);
+//    NVIC_EnableIRQ(LPI2C_DMA_IRQn);
+    // Inicialize EDMA e LPI2C aqui (omiti por brevidade)
+ LPI2C_MasterCreateEDMAHandle(BOARD_ACCEL_I2C_BASEADDR, &i2c_edma_handle, &edma_rx_handle, &edma_tx_handle, I2C_DMA_Callback_rx, NULL);
+
+
+	NVIC_SetPriority(DMA3_DMA19_IRQn, 2);
+	EnableIRQ(DMA3_DMA19_IRQn);
+}
+
+bool ReadFIFO_DMA(uint8_t *buffer, size_t size)
+{
+    lpi2c_master_transfer_t xfer = {0};
+    xfer.slaveAddress   = mpu6050.devAddr;
+    xfer.direction      = kLPI2C_Read;
+    xfer.subaddress     = MPU6050_RA_FIFO_R_W;
+    xfer.subaddressSize = 1;
+    xfer.data           = buffer;
+    xfer.dataSize       = size;
+    xfer.flags          = kLPI2C_TransferDefaultFlag;
+
+    dma_done = false;
+
+    status_t status = LPI2C_MasterTransferEDMA(BOARD_ACCEL_I2C_BASEADDR, &i2c_edma_handle, &xfer);
+    if (status != kStatus_Success)
+        return false;
+
+    while (!dma_done);  // Aguarda DMA concluir
+    return true;
+}
+
+
