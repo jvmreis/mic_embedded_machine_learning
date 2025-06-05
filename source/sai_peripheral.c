@@ -244,6 +244,9 @@ int main(void)
 
     SDK_DelayAtLeastUs(2000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
+    //MPU6050_enableFIFOandInterrupts();
+	MPU6050_configurePollingMode();
+
     // Verify connection
     PRINTF("Testing device connections...\r\n");
     PRINTF(MPU6050_testConnection() ? "MPU6050 connection successful\r\n" :
@@ -256,7 +259,6 @@ int main(void)
     PRINTF("%d\t", MPU6050_getXGyroOffset());
     PRINTF("%d\t", MPU6050_getYGyroOffset());
     PRINTF("%d\t\n", MPU6050_getZGyroOffset());
-
 
     uint8_t result_data[6]={0,0,0,0,0,0};
     uint8_t val=255;
@@ -276,7 +278,7 @@ int main(void)
     }
 
 
-    MPU6050_enableFIFOandInterrupts();
+
 
 
 #if defined DEMO_SDCARD
@@ -326,7 +328,7 @@ int main(void)
 #if defined DEMO_SDCARD
             case '3':
                 //RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
-                RecordAcceSDCard(BOARD_ACCEL_I2C_BASEADDR, 5);
+                RecordAcceSDCard(5);
                 break;
 #endif
 #if defined DIG_MIC

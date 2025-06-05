@@ -661,6 +661,8 @@ bool MPU6050_getIntDataReadyStatus();
 void MPU6050_getMotion9(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* mx, int16_t* my, int16_t* mz);
 void MPU6050_getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
 void MPU6050_getAcceleration(int16_t* x, int16_t* y, int16_t* z);
+void MPU6050_getRAWAcceleration(uint8_t *data, uint8_t length);
+
 int16_t MPU6050_getAccelerationX();
 int16_t MPU6050_getAccelerationY();
 int16_t MPU6050_getAccelerationZ();
@@ -858,4 +860,5 @@ void MPU6050_setDMPConfig1(uint8_t config);
 uint8_t MPU6050_getDMPConfig2();
 void MPU6050_setDMPConfig2(uint8_t config);
 
+void MPU6050_configurePollingMode(void);
 #endif /* _MPU6050_H_ */

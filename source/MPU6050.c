@@ -1781,6 +1781,10 @@ void MPU6050_getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
     *y = (((int16_t)mpu6050.buffer[2]) << 8) | mpu6050.buffer[3];
     *z = (((int16_t)mpu6050.buffer[4]) << 8) | mpu6050.buffer[5];
 }
+
+void MPU6050_getRAWAcceleration(uint8_t *data, uint8_t length) {
+    I2Cdev_readBytes(mpu6050.devAddr, MPU6050_RA_ACCEL_XOUT_H, length, data);
+}
 /** Get X-axis accelerometer reading.
  * @return X-axis acceleration measurement in 16-bit 2's complement format
  * @see getMotion6()
@@ -3183,10 +3187,10 @@ void MPU6050_configScale(MPU6050_Measurement *m) {
 
 
 void MPU6050_enableFIFOandInterrupts() {
-    MPU6050_resetFIFO();                              // Optional: clear FIFO before use
-    MPU6050_setFIFOEnabled(true);                     // Enable FIFO globally
-    MPU6050_setAccelFIFOEnabled(true);                // Enable accelerometer in FIFO
-    MPU6050_setIntDataReadyEnabled(false);             // Enable Data Ready interrupt
+//    MPU6050_resetFIFO();                              // Optional: clear FIFO before use
+//    MPU6050_setFIFOEnabled(true);                     // Enable FIFO globally
+    MPU6050_setAccelFIFOEnabled(false);                // Enable accelerometer in FIFO
+    MPU6050_setIntDataReadyEnabled(true);             // Enable Data Ready interrupt
 }
 
 bool MPU6050_getMeasurement(MPU6050_Measurement *m) {
@@ -3209,4 +3213,22 @@ bool MPU6050_getMeasurement(MPU6050_Measurement *m) {
     m->temperature = (temp_raw / m->temp_sensitivity) + m->temp_offset;
 
     return true;
+}
+void MPU6050_configurePollingMode(void)
+{
+    MPU6050_reset();                                 // Reset all registers
+    MPU6050_setSleepEnabled(false);                  // Wake up the device
+
+    MPU6050_setDLPFMode(1);    // BW = 184 Hz, Sample base = 1 kHz
+    MPU6050_setRate(0);        // Sample rate = 1000 / (1+0) = 1 kHz
+
+    MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_4);  // ±4g scale
+    MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_250);   // Optional: 250°/s
+
+    MPU6050_setFIFOEnabled(false);                   // Disable FIFO
+    MPU6050_setAccelFIFOEnabled(false);              // Don't push accel to FIFO
+    //MPU6050_setGyroFIFOEnabled(false);               // Don't push gyro to FIFO
+
+    MPU6050_setIntDataReadyEnabled(true);            // Enable interrupt when data is ready
+    MPU6050_setInterruptLatchClear(true);            // Clear INT on read
 }
