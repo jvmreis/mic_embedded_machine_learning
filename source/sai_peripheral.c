@@ -287,6 +287,10 @@ int main(void)
     {
         PRINTF("SDCARD init failed !\r\n");
     }
+    if (ClearRecordFolder() != FR_OK)
+    {
+        PRINTF("Delete /record folder error.\r\n");
+    }
 #endif /* DEMO_SDCARD */
 
     PRINTF("\n\rPlease choose the option :\r\n");

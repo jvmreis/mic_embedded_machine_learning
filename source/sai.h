@@ -11,6 +11,7 @@
 #include "fsl_sai_edma.h"
 #include "arm_math.h"
 #include "fsl_codec_common.h"
+#include "ff.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -51,6 +52,7 @@ void PlayMarioTheme(I2S_Type *base);
 void RecordSDCard(I2S_Type *base, uint32_t time_s);
 void RecordPlayback(I2S_Type *base, uint32_t time_s);
 void RecordAcceSDCard( uint32_t time_s);
+FRESULT ClearRecordFolder(void);
 
 /*******************************************************************************
  * Variables

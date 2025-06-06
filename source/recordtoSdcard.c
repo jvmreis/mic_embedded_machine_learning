@@ -253,9 +253,68 @@ void RecordSDCard(I2S_Type *base, uint32_t time_s)
     PRINTF("\r\nPlayback is finished!\r\n");
 }
 
+FRESULT ClearRecordFolder(void)
+{
+    FRESULT res;
+    FILINFO fno;
+    DIR dir;
+    char path[64];           // Pasta onde os arquivos estão
+    char file_path[128];
+
+    sprintf(path, "%c:/record", SDDISK + '0');
+
+    // Abre o diretório
+    res = f_opendir(&dir, path);
+    if (res != FR_OK)
+    {
+        // Se não existir, cria a pasta
+        if (res == FR_NO_PATH)
+        {
+            res = f_mkdir(path);
+            if (res != FR_OK)
+            {
+                PRINTF("[ERROR] Falha ao criar a pasta /record. Código: %d\r\n", res);
+                return res;
+            }
+            return FR_OK;
+        }
+        else
+        {
+            PRINTF("[ERROR] Falha ao abrir a pasta /record. Código: %d\r\n", res);
+            return res;
+        }
+    }
+
+    // Percorre todos os arquivos na pasta
+    for (;;)
+    {
+        res = f_readdir(&dir, &fno);
+        if (res != FR_OK || fno.fname[0] == 0) break;  // Erro ou fim da pasta
+        if (fno.fattrib & AM_DIR) continue;           // Pula subpastas
+
+        // Monta caminho completo: "0:/record/arquivo.csv"
+        sprintf(file_path, "%s/%s", path, fno.fname);
+
+        // Apaga o arquivo
+        res = f_unlink(file_path);
+        if (res != FR_OK)
+        {
+            PRINTF("[WARNING] Falha ao apagar %s. Código: %d\r\n", file_path, res);
+        }
+        else
+        {
+            PRINTF("[INFO] Apagado: %s\r\n", file_path);
+        }
+    }
+
+    f_closedir(&dir);
+    return FR_OK;
+}
 
 void PrintAccelerometerBuffer(int16_t *ax_buffer, int16_t *ay_buffer, int16_t *az_buffer, uint16_t sample_count)
 {
+
+
     FRESULT error;
     static const TCHAR csvpathBuffer[] = DEMO_RECORD_CSV_PATH;
 //
@@ -271,20 +330,24 @@ void PrintAccelerometerBuffer(int16_t *ax_buffer, int16_t *ay_buffer, int16_t *a
         PRINTF("[ERROR] Failed to open CSV file. Error code: %d\r\n", error);
         return;
     }
+    uint16_t max_samples = (sample_count / SAMPLES_PER_LINE) * SAMPLES_PER_LINE;
 
-    for (int i = 0; i < sample_count; i++)
+    for (int i = 0; i < max_samples; i++)
     {
     	//PRINTF("%d %d %d ", (int16_t)ax_buffer[i], (int16_t)ay_buffer[i], (int16_t)az_buffer[i]);
-    	char buffer[64];
-    	sprintf(buffer, "%d %d %d ", (int16_t)ax_buffer[i], (int16_t)ay_buffer[i], (int16_t)az_buffer[i]);
-    	PRINTF("%s", buffer);
-        f_printf(&g_fileObject, "%s", buffer);
+    	char buffer[100];
+
 
         // Quebra de linha a cada 128 amostras
         if ((i + 1) % SAMPLES_PER_LINE == 0)
         {
-            PRINTF("\n");
-            f_printf(&g_fileObject, "\n");
+        	sprintf(buffer, "%d %d %d\n", (int16_t)ax_buffer[i], (int16_t)ay_buffer[i], (int16_t)az_buffer[i]);
+        	PRINTF("%s", buffer);
+            f_printf(&g_fileObject, "%s", buffer);
+        }else{
+        	sprintf(buffer, "%d %d %d ", (int16_t)ax_buffer[i], (int16_t)ay_buffer[i], (int16_t)az_buffer[i]);
+        	PRINTF("%s", buffer);
+            f_printf(&g_fileObject, "%s", buffer);
         }
     }
 
@@ -380,9 +443,9 @@ void PrintAccelerometerBuffer(int16_t *ax_buffer, int16_t *ay_buffer, int16_t *a
 //    PRINTF("[INFO] Recording complete. Total samples: %d\r\n", collected);
 //}
 
-static int16_t ax_buffer[ 2000 * 5];
-static int16_t ay_buffer[ 2000 * 5];
-static int16_t az_buffer[ 2000 * 5];
+static int16_t ax_buffer[ 1000 * 5];
+static int16_t ay_buffer[ 1000 * 5];
+static int16_t az_buffer[ 1000 * 5];
 
 void RecordAcceSDCard(uint32_t time_s)
 {
@@ -390,7 +453,7 @@ void RecordAcceSDCard(uint32_t time_s)
     PRINTF("\r\n[INFO] Begin to record accelerometer data...\r\n");
 
     uint32_t collected = 0;
-    const uint32_t target_samples =  2000 * 5; // 2 kHz
+    const uint32_t target_samples =  1000 * 5; // 2 kHz
 
     uint32_t iteration_count = 0;
     static int16_t ax =0,az=0,ay=0;
