@@ -79,7 +79,7 @@ main-build: evkbimxrt1050_sai_peripheral.axf
 evkbimxrt1050_sai_peripheral.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -Xlinker -no-warn-rwx-segments -Xlinker -Map="evkbimxrt1050_sai_peripheral.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m7 -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -T evkbimxrt1050_sai_peripheral_Debug.ld -o "evkbimxrt1050_sai_peripheral.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"C:\Github\mic_embedded_machine_learning\source\lib" -Xlinker -no-warn-rwx-segments -Xlinker -Map="evkbimxrt1050_sai_peripheral.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m7 -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -T evkbimxrt1050_sai_peripheral_Debug.ld -o "evkbimxrt1050_sai_peripheral.axf" $(OBJS) $(USER_OBJS) $(LIBS) -Wl,--start-group -ltss -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

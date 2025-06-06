@@ -278,9 +278,6 @@ int main(void)
     }
 
 
-
-
-
 #if defined DEMO_SDCARD
     /* Init SDcard and FatFs */
     if (SD_FatFsInit() != 0)
@@ -322,7 +319,9 @@ int main(void)
                 /* Set the audio input source to AUX */
                 DA7212_ChangeInput((da7212_handle_t *)((uint32_t)(codecHandle.codecDevHandle)), kDA7212_Input_AUX);
 #endif
-                RecordPlayback(DEMO_SAI_PERIPHERAL, 30);
+                //RecordPlayback(DEMO_SAI_PERIPHERAL, 30);
+            	ml_anmaly_detection();
+
                 break;
             case '2':
                 //PlaybackSine(DEMO_SAI_PERIPHERAL, 250, 5);
@@ -333,6 +332,11 @@ int main(void)
             case '3':
                 //RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
                 RecordAcceSDCard(5);
+
+                break;
+
+            case '4':
+            	ml_anmaly_detection();
                 break;
 #endif
 #if defined DIG_MIC
@@ -342,6 +346,8 @@ int main(void)
                 RecordPlayback(DEMO_SAI_PERIPHERAL, 30);
                 break;
 #endif
+
+
             default:
                 PRINTF("\rInvallid Input Parameter, please re-enter\r\n");
                 break;

@@ -13,7 +13,9 @@
 #include <stdio.h>
 
 #include "stdio.h"
+#include "TimeSeries.h"
 
+float data_input[TSS_INPUT_DATA_LEN * TSS_INPUT_DATA_DIM];
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -505,3 +507,74 @@ void RecordAcceSDCard(uint32_t time_s)
     PRINTF("[INFO] Recording complete. Total samples: %d\r\n", collected);
 }
 
+void sample_data(float data_buffer[])
+{
+    uint32_t sample_idx = 0;  // Conta amostras completas (x,y,z)
+    uint8_t fifo_buffer[6];
+
+    while (sample_idx < SAMPLES_PER_LINE)
+    {
+        if (i2c_new_data)
+        {
+            MPU6050_getRAWAcceleration(fifo_buffer, 6);
+
+            data_buffer[sample_idx * 3 + 0] = (float)(int16_t)((fifo_buffer[0] << 8) | fifo_buffer[1]); // X
+            data_buffer[sample_idx * 3 + 1] = (float)(int16_t)((fifo_buffer[2] << 8) | fifo_buffer[3]); // Y
+            data_buffer[sample_idx * 3 + 2] = (float)(int16_t)((fifo_buffer[4] << 8) | fifo_buffer[5]); // Z
+
+            sample_idx++;
+            i2c_new_data = false;
+        }
+    }
+}
+int ml_anmaly_detection(void)
+{
+    tss_status status;
+    float probability;
+
+#ifdef SUPPORT_ODL
+    status = tss_ad_init(NULL);
+    if (status != TSS_SUCCESS)
+    {
+        /* Handle the initialization failure cases */
+    }
+
+    /*The learning number is customizable, but we recommend the number greater than TSS_RECOMMEND_LEARNING_SAMPLE_NUM to get better results.*/
+    int learning_num = TSS_RECOMMEND_LEARNING_SAMPLE_NUM;
+    for (int i = 0; i < learning_num; i++)
+    {
+        sample_data(data_input);
+        status = tss_ad_learn(data_input);
+        if (status != TSS_LEARNING_NOT_ENOUGH && status != TSS_RECOMMEND_LEARNING_DONE)
+        {
+            /* Handle the learning failure cases */
+        }
+    }
+#else
+    status = tss_ad_init();
+    if (status != TSS_SUCCESS)
+    {
+        /* Handle the initialization failure cases */
+        PRINTF("[DEBUG] ML init error %d\r\n", status);
+
+    }
+#endif
+
+    while (1)
+    {
+        sample_data(data_input);
+        status = tss_ad_predict(data_input, &probability);
+        if (status != TSS_SUCCESS)
+        {
+            /* Handle the prediction failure cases */
+            PRINTF("error %d\r\n");
+
+        }else{
+            PRINTF("anomaly detection %f\r\n", probability);
+        }
+
+        /* Handle the prediction result */
+    }
+
+    return 0;
+}

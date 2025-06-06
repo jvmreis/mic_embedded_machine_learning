@@ -1,0 +1,95 @@
+{
+    "date_created": "2025-06-06T14:45:57.346072",
+    "lib_id": "7b59c77",
+    "lib_checksum": "e0e7c9d74c669a8146a12bad5481f322",
+    "compiler_info": {
+        "cc_version": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+        "cflags": {
+            "mfloat-abi": "hard",
+            "fshort-enums": false,
+            "fshort-wchar": false
+        }
+    },
+    "use_case": "anomaly_detection",
+    "data_info": {
+        "learning_sample_num": 0,
+        "n_samples": 128,
+        "n_channels": 3,
+        "label": [
+            "Normal",
+            "Anomaly"
+        ]
+    },
+    "platform_info": {
+        "library": true,
+        "emulator": false,
+        "arch": "cortex-m7",
+        "chip": "MIMXRT1062xxxxA"
+    },
+    "memory_usage (Byte)": {
+        "flash": 2260,
+        "ram": 3156
+    },
+    "model_info": {
+        "name": "MHL",
+        "type": "CML",
+        "task": "AD",
+        "description": "Mahalanobis distance-based model for anomaly detection"
+    },
+    "benchmark": {
+        "performance": {
+            "score": 0.9933885654039155,
+            "threshold": 0.9,
+            "balanced_accuracy": 1.0,
+            "f1_score": 1.0,
+            "recall_per_class": [
+                1.0,
+                1.0
+            ],
+            "roc_auc": 1.0,
+            "functional_margin": 1.0,
+            "confusion_matrix": [
+                [
+                    312,
+                    0
+                ],
+                [
+                    0,
+                    429
+                ]
+            ],
+            "confusion_matrix_true": [
+                [
+                    1.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    1.0
+                ]
+            ],
+            "confusion_matrix_pred": [
+                [
+                    1.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    1.0
+                ]
+            ]
+        },
+        "execution_time": {
+            "chip": "",
+            "arch": "",
+            "frequency": "",
+            "value": 0
+        },
+        "estimated_memory_usage (Byte)": {
+            "RAM": 3156,
+            "Heap": 0,
+            "Model_Flash": 624,
+            "Algo_Flash": 1161
+        }
+    }
+}
