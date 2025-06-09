@@ -1,8 +1,19 @@
 /*
- * Copyright 2019 NXP
- * All rights reserved.
+ * ------------------------------------------------------------------------------
+ * PROJECT: Embedded Anomaly Detection with NXP eIQ Toolkit
+ * MODULE:  Main Firmware for MPU6050 Accelerometer Data Logging and ML Inference
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * DESCRIPTION:
+ * ✅ This firmware is focused on:
+ *    - Logging 3-axis acceleration data from the MPU6050 sensor to CSV files,
+ *      formatted specifically for NXP eIQ training tools.
+ *    - Running embedded inference to test machine learning models generated
+ *      with NXP's eIQ Toolkit.
+ *
+ * ⚠️ NOTE:
+ *    - The SAI (Serial Audio Interface) features such as microphone input and
+ *      audio playback are implemented but are intended for **future use**.
+ * ------------------------------------------------------------------------------
  */
 
 #include "sai.h"
@@ -62,8 +73,10 @@ codec_handle_t codecHandle;
 
 
 /*******************************************************************************
- * Code
+ * Callback Functions
+ * Used for SAI microphone DMA operations (future use)
  ******************************************************************************/
+
 void txCallback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
 {
     sendCount++;
@@ -89,6 +102,10 @@ void rxCallback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void
         receiveCount = 0;
     }
 }
+/*******************************************************************************
+ * SD Card & Filesystem
+ * Responsible for initializing SD card and preparing CSV data logging folder
+ ******************************************************************************/
 
 #if defined DEMO_SDCARD
 static status_t sdcardWaitCardInsert(void)
@@ -186,6 +203,10 @@ int SD_FatFsInit()
 }
 #endif /* DEMO_SDCARD */
 
+/*******************************************************************************
+ * GPIO Interrupt Handlers
+ ******************************************************************************/
+
 void BOARD_USER_BUTTON_callback(void *param)
 {
     GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
@@ -196,20 +217,17 @@ void BOARD_MPU6050_int_callback(void *param)
 {
 
  //   GPIO_PortToggle(BOARD_USER_LED_GPIO, BOARD_USER_LED_GPIO_PIN_MASK);
-
-//    MPU6050_getFIFOBytes(fifo_buffer, 6);
-//    MPU6050_setInterruptLatch(true);
-//    MPU6050_setInterruptLatchClear(true); // Para limpar lendo o status
-//    MPU6050_resetFIFO();
     i2c_new_data = true;
-
     GPIO_PortClearInterruptFlags(BOARD_LCDIF_D15_PORT, BOARD_USER_MPU6050_INT_PIN_MASK);
 
 }
 
-/*!
- * @brief Main function
- */
+/*******************************************************************************
+ * Main Function
+ * Initializes MPU6050, logs acceleration data to SD card in CSV format,
+ * and supports running anomaly detection models trained using NXP eIQ.
+ ******************************************************************************/
+
 int main(void)
 {
     char input       = '1';
@@ -293,10 +311,10 @@ int main(void)
     PRINTF("\n\rPlease choose the option :\r\n");
     while (1)
     {
-        PRINTF("\r%d. Record and playback at same time\r\n", userItem++);
-        PRINTF("\r%d. Playback sine wave\r\n", userItem++);
+        PRINTF("\r%d. Run Machine Learning Model \r\n", userItem++);
+        PRINTF("\r%d. Play Mario Song\r\n", userItem++);
 #if defined DEMO_SDCARD
-        PRINTF("\r%d. Record to SDcard, after record playback it\r\n", userItem++);
+        PRINTF("\r%d. Record to SDcard Accelerometer Data \r\n", userItem++);
 #endif /* DEMO_SDCARD */
 #if defined DIG_MIC
         PRINTF("\r%d. Record using digital mic and playback at the same time\r\n", userItem++);
@@ -331,7 +349,7 @@ int main(void)
 #if defined DEMO_SDCARD
             case '3':
                 //RecordSDCard(DEMO_SAI_PERIPHERAL, 5);
-                RecordAcceSDCard(5);
+                RecordAcceSDCard();
 
                 break;
 
@@ -364,6 +382,10 @@ int main(void)
     {
     }
 }
+
+/*******************************************************************************
+ * FIFO Error Handlers for SAI (reserved for future microphone/audio support)
+ ******************************************************************************/
 
 void SAI_UserTxIRQHandler(void)
 {
